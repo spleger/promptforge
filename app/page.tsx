@@ -1,34 +1,95 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import { useCompletion } from 'ai/react';
 import { Navigation } from '@/components/navigation';
-import Link from 'next/link';
+import { PromptInput } from '@/components/prompt-input';
+import { PromptOutput } from '@/components/prompt-output';
+import { EnhancementOptionsComponent } from '@/components/enhancement-options';
+import { EnhancementResult, EnhancementOptions } from '@/lib/types';
+import { parseJsonSafely } from '@/lib/utils';
 
 export default function Home() {
+  const [options, setOptions] = useState<EnhancementOptions>({
+    targetModel: 'general',
+    enhancementLevel: 'standard',
+  });
+
+  const { completion, input, handleInputChange, handleSubmit, isLoading, error } = useCompletion({
+    api: '/api/enhance',
+    body: options,
+  });
+
+  // Parse the streamed JSON response
+  const parsedResult = useMemo(() => {
+    if (!completion) return null;
+
+    try {
+      const jsonMatch = completion.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return parseJsonSafely<EnhancementResult>(jsonMatch[0]);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }, [completion]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <Navigation />
 
       <main className="container mx-auto px-4 py-12 max-w-5xl">
         {/* Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h1 className="text-6xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             PromptForge
           </h1>
           <p className="text-slate-300 text-2xl mb-4">
             Transform casual descriptions into optimized AI prompts
           </p>
-          <p className="text-slate-400 text-lg max-w-3xl mx-auto mb-8">
+          <p className="text-slate-400 text-lg max-w-3xl mx-auto mb-2">
             Turn your rough ideas into professionally structured prompts using advanced prompt engineering techniques.
-            Get better results from ChatGPT, Claude, and other AI models.
           </p>
-          <Link
-            href="/forge"
-            className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-8 py-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
-          >
-            Start Forging Prompts →
-          </Link>
-          <p className="text-slate-500 text-sm mt-4">
+          <p className="text-slate-500 text-sm">
             Powered by Claude Sonnet 4.5
           </p>
         </div>
+
+        {/* Prompt Enhancer - At the top for easy access */}
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-700 shadow-2xl">
+          <h2 className="text-xl font-semibold text-white mb-4">Your Prompt</h2>
+          <PromptInput
+            value={input}
+            onChange={handleInputChange}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+
+          <EnhancementOptionsComponent
+            options={options}
+            onChange={setOptions}
+          />
+        </div>
+
+        {/* Output Section */}
+        {(parsedResult || isLoading) && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-white mb-4">Enhanced Result</h2>
+            <PromptOutput
+              result={parsedResult}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200 mb-8">
+            <h3 className="font-semibold mb-2">Error</h3>
+            <p>{error.message}</p>
+          </div>
+        )}
 
         {/* How It Works */}
         <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-8 mb-12 border border-slate-700">
@@ -246,20 +307,6 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-12 border border-blue-500/30">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to create better prompts?</h2>
-          <p className="text-slate-300 mb-8 text-lg">
-            Start transforming your ideas into professional AI prompts in seconds
-          </p>
-          <Link
-            href="/forge"
-            className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-10 py-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg text-lg"
-          >
-            Try PromptForge Now →
-          </Link>
         </div>
 
         {/* Footer */}

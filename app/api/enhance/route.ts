@@ -17,7 +17,7 @@ const RequestSchema = z.object({
 const MODEL_MAP: Record<string, string> = {
   'claude-opus': 'claude-3-opus-20240229',
   'claude-sonnet': 'claude-3-5-sonnet-20241022',
-  'claude-haiku': 'claude-3-haiku-20240307',
+  'claude-haiku': 'claude-3-5-haiku-20241022',
   'general': 'claude-3-5-sonnet-20241022', // Default to latest Sonnet
 };
 
