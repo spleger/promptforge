@@ -45,12 +45,66 @@ export default function Home() {
           <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             PromptForge
           </h1>
-          <p className="text-slate-400 text-lg">
-            Transform your ideas into powerful AI prompts
+          <p className="text-slate-400 text-xl mb-3">
+            Transform casual descriptions into optimized AI prompts
           </p>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-slate-500 text-base max-w-3xl mx-auto mb-4">
+            Turn your rough ideas into professionally structured prompts using advanced prompt engineering techniques.
+            Get better results from ChatGPT, Claude, and other AI models.
+          </p>
+          <p className="text-slate-600 text-sm">
             Powered by Claude Sonnet 4.5
           </p>
+        </div>
+
+        {/* How It Works */}
+        <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-700">
+          <h2 className="text-2xl font-semibold text-white mb-4 text-center">How It Works</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="bg-blue-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">✍️</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">1. Describe Your Need</h3>
+              <p className="text-slate-400 text-sm">
+                Write what you want in plain language. No need to be formal or specific.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-purple-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🔧</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">2. AI Enhancement</h3>
+              <p className="text-slate-400 text-sm">
+                Our system analyzes and applies proven prompt engineering techniques.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🚀</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">3. Copy & Use</h3>
+              <p className="text-slate-400 text-sm">
+                Get a structured, optimized prompt ready to use with any AI model.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Example Prompts */}
+        <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-6 mb-8 border border-blue-500/30">
+          <h2 className="text-xl font-semibold text-white mb-3">💡 Try These Examples</h2>
+          <div className="space-y-2">
+            <div className="bg-slate-800/50 rounded-lg p-3 text-slate-300 text-sm hover:bg-slate-700/50 transition-colors cursor-pointer">
+              "help me write professional emails"
+            </div>
+            <div className="bg-slate-800/50 rounded-lg p-3 text-slate-300 text-sm hover:bg-slate-700/50 transition-colors cursor-pointer">
+              "review my code for bugs and security issues"
+            </div>
+            <div className="bg-slate-800/50 rounded-lg p-3 text-slate-300 text-sm hover:bg-slate-700/50 transition-colors cursor-pointer">
+              "create a study plan for learning Python"
+            </div>
+          </div>
         </div>
 
         {/* Input Section */}
