@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptForge</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="title">PromptForge</h1>
+      <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+    </div>
+
+    <!-- Input Section -->
+    <div class="input-section">
+      <label for="promptInput" class="label">Your Prompt</label>
+      <textarea
+        id="promptInput"
+        class="textarea"
+        placeholder="Type or paste your prompt here..."
+        rows="4"
+      ></textarea>
+    </div>
+
+    <!-- Options -->
+    <div class="options-section">
+      <div class="option-group">
+        <label for="modelSelect" class="label-small">Model</label>
+        <select id="modelSelect" class="select">
+          <optgroup label="Sonnet">
+            <option value="claude-sonnet-4-5-20250929" selected>Sonnet 4.5 (Latest)</option>
+            <option value="claude-3-5-sonnet-20241022">Sonnet 3.5</option>
+          </optgroup>
+          <optgroup label="Opus">
+            <option value="claude-opus-4-5-20251101">Opus 4.5 (Latest)</option>
+            <option value="claude-opus-4-1-20250805">Opus 4.1</option>
+            <option value="claude-3-opus-20240229">Opus 3</option>
+          </optgroup>
+          <optgroup label="Haiku">
+            <option value="claude-haiku-4-5-20251001">Haiku 4.5 (Latest)</option>
+            <option value="claude-3-5-haiku-20241022">Haiku 3.5</option>
+            <option value="claude-3-haiku-20240307">Haiku 3</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="option-group">
+        <label for="levelSelect" class="label-small">Enhancement Level</label>
+        <select id="levelSelect" class="select">
+          <option value="light">Light - Basic fixes</option>
+          <option value="standard" selected>Standard - Balanced</option>
+          <option value="comprehensive">Comprehensive - Maximum</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Enhance Button -->
+    <button id="enhanceBtn" class="enhance-btn">
+      <span class="btn-text">Enhance Prompt</span>
+      <span class="btn-icon">🚀</span>
+    </button>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state hidden">
+      <div class="spinner"></div>
+      <span>Enhancing...</span>
+    </div>
+
+    <!-- Result Section -->
+    <div id="resultSection" class="result-section hidden">
+      <div class="result-header">
+        <label class="label">Enhanced Prompt</label>
+        <div class="result-actions">
+          <button id="copyBtn" class="action-btn" title="Copy to clipboard">
+            📋 Copy
+          </button>
+          <button id="insertBtn" class="action-btn" title="Insert into page">
+            ✏️ Insert
+          </button>
+        </div>
+      </div>
+      <div id="resultText" class="result-text"></div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state hidden">
+      <span class="error-icon">⚠️</span>
+      <span id="errorMessage" class="error-message"></span>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <a href="https://promptforge.vercel.app" target="_blank" class="footer-link">
+        Open Web App
+      </a>
+      <span class="footer-separator">•</span>
+      <a href="#" id="historyLink" class="footer-link">
+        History
+      </a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
