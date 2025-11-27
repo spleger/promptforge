@@ -207,8 +207,8 @@ export default function Home() {
 
         {/* Testimonials - Gratje Edition */}
         <div className="bg-gradient-to-r from-orange-900/20 to-yellow-900/20 backdrop-blur-sm rounded-xl p-8 mb-12 border border-orange-500/30">
-          <h2 className="text-3xl font-semibold text-white mb-2 text-center">What Gratje Says</h2>
-          <p className="text-slate-400 text-center mb-8">Trusted by the most legendary dog in Maaskantje</p>
+          <h2 className="text-3xl font-semibold text-white mb-2 text-center">Was Gratje sagt</h2>
+          <p className="text-slate-400 text-center mb-8">Vertraut von dem legendärsten Hund in Maaskantje</p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Gratje */}
@@ -223,7 +223,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Gauw gauw! Dit is toch niet te geloven! Mijn prompts zijn nu zo goed dat zelfs Richard ze begrijpt. Helemaal vet!"
+                "Schnell schnell! Das ist doch nicht zu glauben! Meine Prompts sind jetzt so gut, dass sogar Richard sie versteht. Total geil!"
               </p>
             </div>
 
@@ -239,7 +239,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Jezus Christus! Ik heb nog nooit zulke mooie prompts gezien. Beter dan een frikandel broodje, en dat wil wat zeggen!"
+                "Jesus Christus! Ich habe noch nie so schöne Prompts gesehen. Besser als ein Frikandel-Brötchen, und das will schon was heißen!"
               </p>
             </div>
 
@@ -255,7 +255,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Ik ben helemaal kapot van deze tool! Nu kan ik eindelijk goede prompts maken zonder dat Barrie alles verpest. Jonge jonge jonge!"
+                "Ich bin total fertig von diesem Tool! Jetzt kann ich endlich gute Prompts machen, ohne dass Barrie alles versaut. Junge junge junge!"
               </p>
             </div>
 
@@ -271,7 +271,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Dit is toch wel ongelofelijk dit! Zelfs beter dan die keer dat we die scooter jatten. Helemaal te gek!"
+                "Das ist doch unglaublich! Sogar besser als damals, als wir den Roller geklaut haben. Total abgefahren!"
               </p>
             </div>
 
@@ -287,7 +287,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Jonguh! Voor deze prompts zou ik zelfs mijnBredase kaolo ruilen. En dat betekent echt heel veel!"
+                "Junge! Für diese Prompts würde ich sogar meine Bredase Kaolo eintauschen. Und das bedeutet echt viel!"
               </p>
             </div>
 
@@ -303,7 +303,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-slate-300 italic">
-                "Wat een gaaf ding! Nu maak ik betere prompts dan Gerrie betere worsten maakt. En dat wil echt wat zeggen, jonge!"
+                "Was für ein geiles Ding! Jetzt mache ich bessere Prompts als Gerrie bessere Würste macht. Und das will echt was heißen, Junge!"
               </p>
             </div>
           </div>
