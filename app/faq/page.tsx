@@ -9,10 +9,10 @@ export default function FAQPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Häufig gestellte Fragen
+            Frequently Asked Questions
           </h1>
           <p className="text-slate-400 text-xl">
-            Alles was Sie über PromptForge wissen müssen
+            Everything you need to know about PromptForge
           </p>
         </div>
 
@@ -20,60 +20,60 @@ export default function FAQPage() {
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-700">
           <div className="space-y-6">
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Was ist PromptForge?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">What is PromptForge?</h3>
               <p className="text-slate-400">
-                PromptForge ist ein KI-gestütztes Tool, das Ihre beiläufigen Beschreibungen in professionell optimierte Prompts verwandelt.
-                Es verwendet fortschrittliche Prompt-Engineering-Techniken, um Ihnen bessere Ergebnisse von KI-Modellen wie ChatGPT und Claude zu ermöglichen.
+                PromptForge is an AI-powered tool that transforms your casual descriptions into professionally optimized prompts.
+                It uses advanced prompt engineering techniques to help you get better results from AI models like ChatGPT and Claude.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Wie funktioniert es?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">How does it work?</h3>
               <p className="text-slate-400">
-                Beschreiben Sie einfach in normaler Sprache, was Sie möchten, wählen Sie Ihr Verbesserungsniveau und klicken Sie auf "Prompt verbessern".
-                Unsere KI analysiert Ihre Eingabe, erkennt Ihre Absicht und strukturiert sie mit bewährten Prompt-Engineering-Mustern
-                wie Chain-of-Thought, Few-Shot-Learning und Rollenzuweisung.
+                Simply describe what you want in plain language, select your enhancement level, and click "Enhance Prompt".
+                Our AI analyzes your input, detects your intent, and restructures it using proven prompt engineering patterns
+                like chain-of-thought, few-shot learning, and role assignment.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Was sind die Verbesserungsstufen?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">What are the enhancement levels?</h3>
               <p className="text-slate-400">
-                <strong className="text-white">Light:</strong> Schnelle Korrekturen für Klarheit und grundlegende Struktur.<br/>
-                <strong className="text-white">Standard:</strong> Ausgewogene Verbesserung mit guter Struktur und Formatierung.<br/>
-                <strong className="text-white">Comprehensive:</strong> Maximale Verbesserung mit Beispielen, Randfällen und detaillierten Anleitungen.
+                <strong className="text-white">Light:</strong> Quick fixes for clarity and basic structure.<br/>
+                <strong className="text-white">Standard:</strong> Balanced enhancement with good structure and formatting.<br/>
+                <strong className="text-white">Comprehensive:</strong> Maximum enhancement with examples, edge cases, and detailed guidance.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Ist es kostenlos?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">Is it free?</h3>
               <p className="text-slate-400">
-                Ja! PromptForge ist völlig kostenlos nutzbar. Wir werden von Claude Sonnet 4.5 betrieben und auf Vercel gehostet.
+                Yes! PromptForge is completely free to use. We're powered by Claude Sonnet 4.5 and hosted on Vercel.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Mit welchen KI-Modellen kann ich die verbesserten Prompts verwenden?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">What AI models can I use the enhanced prompts with?</h3>
               <p className="text-slate-400">
-                Die verbesserten Prompts funktionieren mit jedem KI-Modell, einschließlich ChatGPT, Claude, Gemini und anderen.
-                Sie können sogar speziell für Claude oder GPT-4 optimieren, indem Sie die Option "Zielmodell" verwenden.
+                The enhanced prompts work with any AI model including ChatGPT, Claude, Gemini, and others.
+                You can even optimize specifically for Claude or GPT-4 using the "Target Model" option.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold text-lg mb-2">Warum empfiehlt Gratje das?</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">Why does Gratje recommend this?</h3>
               <p className="text-slate-400">
-                Weil Gratje Qualität erkennt, wenn er sie sieht! Selbst aus Maaskantje versteht Gratje, dass gute Prompts
-                der Schlüssel zu den besten KI-Antworten sind. Total geil!
+                Because Gratje knows quality when he sees it! Even from Maaskantje, Gratje understands that good prompts
+                are the key to getting the best AI responses. Helemaal vet!
               </p>
             </div>
           </div>
         </div>
 
-        {/* Testimonials - Gratje Edition (German) */}
+        {/* Testimonials - Gratje Edition */}
         <div className="bg-gradient-to-r from-orange-900/20 to-yellow-900/20 backdrop-blur-sm rounded-xl p-6 mb-8 border border-orange-500/30">
-          <h2 className="text-2xl font-semibold text-white mb-2 text-center">🐕 Was Gratje sagt</h2>
-          <p className="text-slate-400 text-center text-sm mb-6">Vertraut vom legendärsten Hund in Maaskantje</p>
+          <h2 className="text-2xl font-semibold text-white mb-2 text-center">🐕 What Gratje Says</h2>
+          <p className="text-slate-400 text-center text-sm mb-6">Trusted by the most legendary dog in Maaskantje</p>
 
           <div className="grid md:grid-cols-3 gap-4">
             {/* Gratje */}
@@ -88,7 +88,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Schnell schnell! Das ist doch nicht zu glauben! Meine Prompts sind jetzt so gut, dass sogar Richard sie versteht. Total geil!"
+                "Gauw gauw! Dit is toch niet te geloven! Mijn prompts zijn nu zo goed dat zelfs Richard ze begrijpt. Helemaal vet!"
               </p>
             </div>
 
@@ -104,7 +104,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Jesus Christus! Ich habe noch nie so schöne Prompts gesehen. Besser als ein Frikandel-Brötchen, und das will schon was heißen!"
+                "Jezus Christus! Ik heb nog nooit zulke mooie prompts gezien. Beter dan een frikandel broodje, en dat wil wat zeggen!"
               </p>
             </div>
 
@@ -120,7 +120,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Ich bin total fertig von diesem Tool! Jetzt kann ich endlich gute Prompts machen, ohne dass Barrie alles versaut. Junge junge junge!"
+                "Ik ben helemaal kapot van deze tool! Nu kan ik eindelijk goede prompts maken zonder dat Barrie alles verpest. Jonge jonge jonge!"
               </p>
             </div>
 
@@ -136,7 +136,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Das ist doch unglaublich! Sogar besser als damals, als wir den Roller geklaut haben. Total abgefahren!"
+                "Dit is toch wel ongelofelijk dit! Zelfs beter dan die keer dat we die scooter jatten. Helemaal te gek!"
               </p>
             </div>
 
@@ -152,7 +152,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Junge! Für diese Prompts würde ich sogar meine Bredase Kaolo eintauschen. Und das bedeutet echt viel!"
+                "Jonguh! Voor deze prompts zou ik zelfs mijnBredase kaolo ruilen. En dat betekent echt heel veel!"
               </p>
             </div>
 
@@ -168,7 +168,7 @@ export default function FAQPage() {
                 </div>
               </div>
               <p className="text-slate-300 text-sm italic">
-                "Was für ein geiles Ding! Jetzt mache ich bessere Prompts als Gerrie bessere Würste macht. Und das will echt was heißen, Junge!"
+                "Wat een gaaf ding! Nu maak ik betere prompts dan Gerrie betere worsten maakt. En dat wil echt wat zeggen, jonge!"
               </p>
             </div>
           </div>
