@@ -11,7 +11,7 @@ import { parseJsonSafely } from '@/lib/utils';
 
 export default function Home() {
   const [options, setOptions] = useState<EnhancementOptions>({
-    targetModel: 'general',
+    targetModel: 'claude-sonnet-4-5-20250929', // Default to Sonnet 4.5
     enhancementLevel: 'standard',
   });
 

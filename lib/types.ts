@@ -1,5 +1,5 @@
 export interface EnhancementOptions {
-  targetModel: 'claude-opus' | 'claude-sonnet' | 'claude-haiku' | 'general';
+  targetModel: string; // Full Claude model ID (e.g., claude-sonnet-4-5-20250929)
   enhancementLevel: 'light' | 'standard' | 'comprehensive';
 }
 
