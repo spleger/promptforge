@@ -118,7 +118,7 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
       {/* Target Model */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Label className="text-slate-300 font-medium">Target Model</Label>
+          <Label className="text-slate-300 font-medium">Claude Model</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -126,7 +126,7 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p className="text-sm">
-                  Optimize the prompt for a specific AI model's strengths and preferences
+                  Choose which Claude model to use for enhancement. Opus is most capable, Sonnet is balanced, and Haiku is fastest.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -141,7 +141,7 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
               targetModel: value as EnhancementOptions['targetModel'],
             })
           }
-          className="grid grid-cols-3 gap-3"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
         >
           <div>
             <Label
@@ -159,7 +159,7 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
                 <RadioGroupItem value="general" id="general" />
                 <div>
                   <div className="text-sm font-medium text-white">General</div>
-                  <div className="text-xs text-slate-400">Any model</div>
+                  <div className="text-xs text-slate-400">Sonnet 3.5</div>
                 </div>
               </div>
             </Label>
@@ -167,21 +167,21 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
 
           <div>
             <Label
-              htmlFor="claude"
+              htmlFor="claude-opus"
               className={`
                 flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
                 ${
-                  options.targetModel === 'claude'
+                  options.targetModel === 'claude-opus'
                     ? 'border-blue-500 bg-blue-500/10'
                     : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
               <div className="flex items-center gap-2">
-                <RadioGroupItem value="claude" id="claude" />
+                <RadioGroupItem value="claude-opus" id="claude-opus" />
                 <div>
-                  <div className="text-sm font-medium text-white">Claude</div>
-                  <div className="text-xs text-slate-400">Anthropic</div>
+                  <div className="text-sm font-medium text-white">Opus</div>
+                  <div className="text-xs text-slate-400">Most capable</div>
                 </div>
               </div>
             </Label>
@@ -189,21 +189,43 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
 
           <div>
             <Label
-              htmlFor="gpt4"
+              htmlFor="claude-sonnet"
               className={`
                 flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
                 ${
-                  options.targetModel === 'gpt4'
+                  options.targetModel === 'claude-sonnet'
                     ? 'border-blue-500 bg-blue-500/10'
                     : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
               <div className="flex items-center gap-2">
-                <RadioGroupItem value="gpt4" id="gpt4" />
+                <RadioGroupItem value="claude-sonnet" id="claude-sonnet" />
                 <div>
-                  <div className="text-sm font-medium text-white">GPT-4</div>
-                  <div className="text-xs text-slate-400">OpenAI</div>
+                  <div className="text-sm font-medium text-white">Sonnet</div>
+                  <div className="text-xs text-slate-400">Balanced</div>
+                </div>
+              </div>
+            </Label>
+          </div>
+
+          <div>
+            <Label
+              htmlFor="claude-haiku"
+              className={`
+                flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${
+                  options.targetModel === 'claude-haiku'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                }
+              `}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="claude-haiku" id="claude-haiku" />
+                <div>
+                  <div className="text-sm font-medium text-white">Haiku</div>
+                  <div className="text-xs text-slate-400">Fast</div>
                 </div>
               </div>
             </Label>

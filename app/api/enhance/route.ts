@@ -6,12 +6,20 @@ import { META_PROMPT, ENHANCEMENT_LEVELS } from '@/lib/prompts/meta-prompt';
 const RequestSchema = z.object({
   prompt: z.string().min(3, 'Input must be at least 3 characters').max(2000, 'Input must not exceed 2000 characters').optional(),
   input: z.string().min(3, 'Input must be at least 3 characters').max(2000, 'Input must not exceed 2000 characters').optional(),
-  targetModel: z.enum(['claude', 'gpt4', 'general']).default('general'),
+  targetModel: z.enum(['claude-opus', 'claude-sonnet', 'claude-haiku', 'general']).default('general'),
   enhancementLevel: z.enum(['light', 'standard', 'comprehensive']).default('standard'),
 }).refine(data => data.prompt || data.input, {
   message: 'Either prompt or input is required',
   path: ['input'],
 });
+
+// Map target models to actual Anthropic model IDs
+const MODEL_MAP: Record<string, string> = {
+  'claude-opus': 'claude-3-opus-20240229',
+  'claude-sonnet': 'claude-3-5-sonnet-20241022',
+  'claude-haiku': 'claude-3-haiku-20240307',
+  'general': 'claude-3-5-sonnet-20241022', // Default to latest Sonnet
+};
 
 export const runtime = 'edge';
 
@@ -54,8 +62,11 @@ export async function POST(req: Request) {
       .replace('{{TARGET_MODEL}}', targetModel)
       .replace('{{ENHANCEMENT_LEVEL}}', ENHANCEMENT_LEVELS[enhancementLevel]);
 
+    // Select the appropriate model based on user choice
+    const modelId = MODEL_MAP[targetModel] || MODEL_MAP['general'];
+
     const result = await streamText({
-      model: anthropic('claude-sonnet-4-20250514'),
+      model: anthropic(modelId),
       prompt,
       maxTokens: 2500,
       temperature: 0.7,

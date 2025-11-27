@@ -1,5 +1,5 @@
 export interface EnhancementOptions {
-  targetModel: 'claude' | 'gpt4' | 'general';
+  targetModel: 'claude-opus' | 'claude-sonnet' | 'claude-haiku' | 'general';
   enhancementLevel: 'light' | 'standard' | 'comprehensive';
 }
 
