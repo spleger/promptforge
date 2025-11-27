@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Navigation } from '@/components/navigation';
 
 export default function FAQPage() {
@@ -79,8 +80,15 @@ export default function FAQPage() {
             {/* Gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🐕
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="Gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">Gratje</h3>
@@ -95,8 +103,15 @@ export default function FAQPage() {
             {/* nicht_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-orange-700 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🦮
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="nicht_gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">nicht_gratje</h3>
@@ -111,8 +126,15 @@ export default function FAQPage() {
             {/* auch_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-orange-800 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🐶
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="auch_gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">auch_gratje</h3>
@@ -127,8 +149,15 @@ export default function FAQPage() {
             {/* mega_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-orange-900 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🐕‍🦺
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="mega_gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">mega_gratje</h3>
@@ -143,8 +172,15 @@ export default function FAQPage() {
             {/* super_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-yellow-700 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🦴
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="super_gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">super_gratje</h3>
@@ -159,8 +195,15 @@ export default function FAQPage() {
             {/* ultra_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-4 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-2xl mr-3">
-                  🌭
+                <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="ultra_gratje"
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">ultra_gratje</h3>

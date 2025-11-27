@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCompletion } from 'ai/react';
+import Image from 'next/image';
 import { Navigation } from '@/components/navigation';
 import { PromptInput } from '@/components/prompt-input';
 import { PromptOutput } from '@/components/prompt-output';
@@ -214,8 +215,15 @@ export default function Home() {
             {/* Gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-orange-600 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🐕
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="Gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">Gratje</h3>
@@ -230,8 +238,15 @@ export default function Home() {
             {/* nicht_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-orange-700 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🦮
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="nicht_gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">nicht_gratje</h3>
@@ -246,8 +261,15 @@ export default function Home() {
             {/* auch_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-orange-800 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🐶
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="auch_gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">auch_gratje</h3>
@@ -262,8 +284,15 @@ export default function Home() {
             {/* mega_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-orange-900 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🐕‍🦺
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="mega_gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">mega_gratje</h3>
@@ -278,8 +307,15 @@ export default function Home() {
             {/* super_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-yellow-700 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🦴
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-1.gif"
+                    alt="super_gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">super_gratje</h3>
@@ -294,8 +330,15 @@ export default function Home() {
             {/* ultra_gratje */}
             <div className="bg-slate-800/70 rounded-lg p-5 border border-orange-500/20">
               <div className="flex items-center mb-3">
-                <div className="w-14 h-14 bg-yellow-600 rounded-full flex items-center justify-center text-3xl mr-3">
-                  🌭
+                <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src="/images/gratje/gratje-2.gif"
+                    alt="ultra_gratje"
+                    width={56}
+                    height={56}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">ultra_gratje</h3>
