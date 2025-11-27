@@ -128,7 +128,7 @@ export default function FAQPage() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-1.gif"
+                    src="/images/gratje/gratje-3.gif"
                     alt="auch_gratje"
                     width={48}
                     height={48}
@@ -151,7 +151,7 @@ export default function FAQPage() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-2.gif"
+                    src="/images/gratje/gratje-4.jpg"
                     alt="mega_gratje"
                     width={48}
                     height={48}
@@ -174,7 +174,7 @@ export default function FAQPage() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-1.gif"
+                    src="/images/gratje/gratje-5.gif"
                     alt="super_gratje"
                     width={48}
                     height={48}
@@ -197,7 +197,7 @@ export default function FAQPage() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-2.gif"
+                    src="/images/gratje/gratje-6.gif"
                     alt="ultra_gratje"
                     width={48}
                     height={48}

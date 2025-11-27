@@ -263,7 +263,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-1.gif"
+                    src="/images/gratje/gratje-3.gif"
                     alt="auch_gratje"
                     width={56}
                     height={56}
@@ -286,7 +286,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-2.gif"
+                    src="/images/gratje/gratje-4.jpg"
                     alt="mega_gratje"
                     width={56}
                     height={56}
@@ -309,7 +309,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-1.gif"
+                    src="/images/gratje/gratje-5.gif"
                     alt="super_gratje"
                     width={56}
                     height={56}
@@ -332,7 +332,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-2.gif"
+                    src="/images/gratje/gratje-6.gif"
                     alt="ultra_gratje"
                     width={56}
                     height={56}
