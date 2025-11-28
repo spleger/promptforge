@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate PromptForge Icons</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+    h1 {
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .canvas-container {
+      display: flex;
+      gap: 20px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .canvas-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    canvas {
+      border: 2px solid #334155;
+      border-radius: 8px;
+      background: white;
+    }
+    button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    .instructions {
+      background: rgba(30, 41, 59, 0.5);
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 PromptForge Icon Generator</h1>
+
+  <div class="instructions">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Click "Generate Icons" to create the icon files</li>
+      <li>Right-click each canvas and select "Save image as..."</li>
+      <li>Save them in the extension/icons/ folder with the correct names:
+        <ul>
+          <li>icon16.png</li>
+          <li>icon48.png</li>
+          <li>icon128.png</li>
+        </ul>
+      </li>
+      <li>Reload your extension in Chrome</li>
+    </ol>
+  </div>
+
+  <button onclick="generateIcons()">Generate Icons</button>
+
+  <div class="canvas-container">
+    <div class="canvas-item">
+      <canvas id="icon16" width="16" height="16"></canvas>
+      <span>16x16</span>
+    </div>
+    <div class="canvas-item">
+      <canvas id="icon48" width="48" height="48"></canvas>
+      <span>48x48</span>
+    </div>
+    <div class="canvas-item">
+      <canvas id="icon128" width="128" height="128"></canvas>
+      <span>128x128</span>
+    </div>
+  </div>
+
+  <script>
+    function generateIcons() {
+      // Generate 16x16 icon
+      drawIcon('icon16', 16);
+
+      // Generate 48x48 icon
+      drawIcon('icon48', 48);
+
+      // Generate 128x128 icon
+      drawIcon('icon128', 128);
+    }
+
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+
+      // Clear canvas
+      ctx.clearRect(0, 0, size, size);
+
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#3b82f6');
+      gradient.addColorStop(1, '#8b5cf6');
+
+      // Draw rounded rectangle background
+      const radius = size * 0.2;
+      ctx.fillStyle = gradient;
+      roundRect(ctx, 0, 0, size, size, radius);
+      ctx.fill();
+
+      // Draw sparkle/forge symbol
+      ctx.fillStyle = 'white';
+
+      if (size >= 48) {
+        // Draw detailed icon for larger sizes
+        drawSparkles(ctx, size);
+      } else {
+        // Draw simple icon for 16x16
+        drawSimpleSparkle(ctx, size);
+      }
+    }
+
+    function drawSparkles(ctx, size) {
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const sparkleSize = size * 0.15;
+
+      // Main sparkle
+      drawSparkle(ctx, centerX, centerY, sparkleSize * 1.5);
+
+      // Smaller sparkles
+      drawSparkle(ctx, centerX - size * 0.25, centerY - size * 0.15, sparkleSize * 0.8);
+      drawSparkle(ctx, centerX + size * 0.25, centerY + size * 0.15, sparkleSize * 0.7);
+    }
+
+    function drawSimpleSparkle(ctx, size) {
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const sparkleSize = size * 0.25;
+
+      drawSparkle(ctx, centerX, centerY, sparkleSize);
+    }
+
+    function drawSparkle(ctx, x, y, size) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Draw 4-pointed star
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const angle = (i * Math.PI / 2);
+        const outerX = Math.cos(angle) * size;
+        const outerY = Math.sin(angle) * size;
+        const innerAngle = angle + Math.PI / 4;
+        const innerX = Math.cos(innerAngle) * (size * 0.3);
+        const innerY = Math.sin(innerAngle) * (size * 0.3);
+
+        if (i === 0) {
+          ctx.moveTo(outerX, outerY);
+        } else {
+          ctx.lineTo(outerX, outerY);
+        }
+        ctx.lineTo(innerX, innerY);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    // Auto-generate on load
+    window.addEventListener('load', generateIcons);
+  </script>
+</body>
+</html>

@@ -71,18 +71,31 @@
 
     <!-- Result Section -->
     <div id="resultSection" class="result-section hidden">
-      <div class="result-header">
-        <label class="label">Enhanced Prompt</label>
-        <div class="result-actions">
-          <button id="copyBtn" class="action-btn" title="Copy to clipboard">
-            📋 Copy
-          </button>
-          <button id="insertBtn" class="action-btn" title="Insert into page">
-            ✏️ Insert
-          </button>
+      <!-- Original Review -->
+      <div class="review-box">
+        <div class="review-header">
+          <span class="review-label">📝 Original Review</span>
         </div>
+        <div id="originalReview" class="review-text"></div>
       </div>
-      <div id="resultText" class="result-text"></div>
+
+      <!-- Enhanced Review -->
+      <div class="review-box">
+        <div class="review-header">
+          <span class="review-label">✨ Enhanced Review</span>
+        </div>
+        <div id="enhancedReview" class="review-text"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="result-actions">
+        <button id="copyPromptBtn" class="action-btn primary" title="Copy full enhanced prompt">
+          📋 Copy Enhanced Prompt
+        </button>
+        <button id="copyReviewsBtn" class="action-btn" title="Copy both reviews">
+          📄 Copy Reviews
+        </button>
+      </div>
     </div>
 
     <!-- Error State -->
