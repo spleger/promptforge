@@ -49,7 +49,7 @@ async function enhanceAndNotify(text, tabId) {
 
     // Make API request
     // CHANGE THIS: Use 'http://localhost:3001/api/enhance' for local dev
-    const response = await fetch('http://localhost:3001/api/enhance', {
+    const response = await fetch('https://promptforge.vercel.app/api/enhance', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

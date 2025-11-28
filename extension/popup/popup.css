@@ -101,6 +101,7 @@ body {
 .option-group {
   display: flex;
   flex-direction: column;
+  min-width: 0; /* Allow shrinking below content size */
 }
 
 .select {
@@ -112,6 +113,11 @@ body {
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.2s;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .select:focus {
