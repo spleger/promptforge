@@ -286,7 +286,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-4.jpg"
+                    src="/images/gratje/gratje-4.gif"
                     alt="mega_gratje"
                     width={56}
                     height={56}

@@ -151,7 +151,7 @@ export default function FAQPage() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-4.jpg"
+                    src="/images/gratje/gratje-4.gif"
                     alt="mega_gratje"
                     width={48}
                     height={48}
