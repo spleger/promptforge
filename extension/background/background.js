@@ -128,16 +128,26 @@ function parseEnhancedPrompt(response) {
     // Handle streaming format - data might be in chunks with "0:" prefix or newline-separated
     let cleanedResponse = response;
 
-    // Remove streaming prefixes like "0:" that Next.js might add
+    // Remove streaming prefixes like "0:", "1:", etc. that Next.js might add
     cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
 
+    // Try parsing as complete JSON first (most common case)
+    try {
+      const data = JSON.parse(cleanedResponse);
+      if (data.enhanced_prompt) {
+        return data.enhanced_prompt;
+      }
+    } catch (e) {
+      // Not a complete JSON, continue with other methods
+    }
+
     // Try to find and parse JSON objects in the response
-    // Look for the last complete JSON object (most likely to have full data)
-    const jsonRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    // Use a more robust regex that handles nested objects
+    const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
     const jsonMatches = cleanedResponse.match(jsonRegex);
 
     if (jsonMatches && jsonMatches.length > 0) {
-      // Try parsing from the last match backwards
+      // Try parsing from the last match backwards (most complete data usually at the end)
       for (let i = jsonMatches.length - 1; i >= 0; i--) {
         try {
           const data = JSON.parse(jsonMatches[i]);
@@ -154,17 +164,32 @@ function parseEnhancedPrompt(response) {
     }
 
     // If JSON parsing failed, try to extract text between quotes
-    // Look for patterns like "enhanced_prompt":"text here"
-    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+    // Look for patterns like "enhanced_prompt":"text here" (handling escaped quotes and newlines)
+    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
     if (enhancedMatch) {
-      return enhancedMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      const extracted = enhancedMatch[1]
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\t/g, '\t')
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, '\\');
+
+      if (extracted && extracted.length > 0) {
+        return extracted;
+      }
     }
 
-    // Last resort: return the cleaned response as-is
-    return cleanedResponse.trim() || response.trim();
+    // Last resort: return the cleaned response as-is if it has content
+    const finalResponse = cleanedResponse.trim() || response.trim();
+    if (finalResponse && finalResponse.length > 0) {
+      return finalResponse;
+    }
+
+    // Nothing worked
+    return null;
   } catch (error) {
-    console.warn('Parse error:', error);
-    return response.trim();
+    console.error('Parse error:', error);
+    return response?.trim() || null;
   }
 }
 

@@ -29,12 +29,19 @@ chrome.storage.sync.get(['defaultModel', 'defaultLevel'], (result) => {
 
 // Check if there's selected text on the page
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  chrome.tabs.sendMessage(tabs[0].id, { action: 'getSelectedText' }, (response) => {
-    if (response && response.text) {
-      promptInput.value = response.text;
-      promptInput.focus();
-    }
-  });
+  if (tabs[0]) {
+    chrome.tabs.sendMessage(tabs[0].id, { action: 'getSelectedText' }, (response) => {
+      // Ignore chrome.runtime.lastError (happens on chrome:// pages or when content script isn't ready)
+      if (chrome.runtime.lastError) {
+        // Silently ignore - content script not available on this page
+        return;
+      }
+      if (response && response.text) {
+        promptInput.value = response.text;
+        promptInput.focus();
+      }
+    });
+  }
 });
 
 // Enhance button click handler
@@ -88,8 +95,20 @@ async function enhancePrompt(prompt) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Enhancement failed');
+      let errorMessage = 'Enhancement failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, try to get text
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        } catch (e2) {
+          // Use default error message
+        }
+      }
+      throw new Error(errorMessage);
     }
 
     // Read the streaming response
@@ -97,20 +116,30 @@ async function enhancePrompt(prompt) {
     const decoder = new TextDecoder();
     let fullResponse = '';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      const chunk = decoder.decode(value);
-      fullResponse += chunk;
+        const chunk = decoder.decode(value, { stream: true });
+        fullResponse += chunk;
+      }
+    } catch (streamError) {
+      console.warn('Streaming error:', streamError);
+      // Continue with whatever we received
     }
+
+    console.log('Full response received:', fullResponse.substring(0, 200) + '...');
 
     // Parse the enhanced prompt from the response
     const parsedResponse = parseEnhancedPrompt(fullResponse);
 
     if (!parsedResponse.enhanced) {
-      throw new Error('Could not parse enhanced prompt');
+      console.error('Failed to parse response:', fullResponse);
+      throw new Error('Could not parse enhanced prompt. Please try again.');
     }
+
+    console.log('Parsed successfully:', parsedResponse.enhanced.substring(0, 100) + '...');
 
     // Show result
     originalReview.textContent = parsedResponse.original || prompt;
@@ -138,16 +167,29 @@ function parseEnhancedPrompt(response) {
     // Handle streaming format - data might be in chunks with "0:" prefix or newline-separated
     let cleanedResponse = response;
 
-    // Remove streaming prefixes like "0:" that Next.js might add
+    // Remove streaming prefixes like "0:", "1:", etc. that Next.js might add
     cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
 
+    // Try parsing as complete JSON first (most common case)
+    try {
+      const data = JSON.parse(cleanedResponse);
+      if (data.enhanced_prompt) {
+        return {
+          enhanced: data.enhanced_prompt,
+          original: data.analysis?.detected_intent || null
+        };
+      }
+    } catch (e) {
+      // Not a complete JSON, continue with other methods
+    }
+
     // Try to find and parse JSON objects in the response
-    // Look for the last complete JSON object (most likely to have full data)
-    const jsonRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    // Use a more robust regex that handles nested objects
+    const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
     const jsonMatches = cleanedResponse.match(jsonRegex);
 
     if (jsonMatches && jsonMatches.length > 0) {
-      // Try parsing from the last match backwards
+      // Try parsing from the last match backwards (most complete data usually at the end)
       for (let i = jsonMatches.length - 1; i >= 0; i--) {
         try {
           const data = JSON.parse(jsonMatches[i]);
@@ -167,25 +209,44 @@ function parseEnhancedPrompt(response) {
     }
 
     // If JSON parsing failed, try to extract text between quotes
-    // Look for patterns like "enhanced_prompt":"text here"
-    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+    // Look for patterns like "enhanced_prompt":"text here" (handling escaped quotes and newlines)
+    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
     if (enhancedMatch) {
+      const extracted = enhancedMatch[1]
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\t/g, '\t')
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, '\\');
+
+      if (extracted && extracted.length > 0) {
+        return {
+          enhanced: extracted,
+          original: null
+        };
+      }
+    }
+
+    // Last resort: return the cleaned response as-is if it has content
+    const finalResponse = cleanedResponse.trim() || response.trim();
+    if (finalResponse && finalResponse.length > 0) {
       return {
-        enhanced: enhancedMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+        enhanced: finalResponse,
         original: null
       };
     }
 
-    // Last resort: return the cleaned response as-is
+    // Nothing worked
     return {
-      enhanced: cleanedResponse.trim() || response.trim(),
+      enhanced: null,
       original: null
     };
   } catch (error) {
-    console.warn('Parse error:', error);
-    // Return raw response as fallback
+    console.error('Parse error:', error);
+    // Return raw response as fallback if it exists
+    const fallback = response?.trim();
     return {
-      enhanced: response.trim(),
+      enhanced: fallback || null,
       original: null
     };
   }
