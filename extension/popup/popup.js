@@ -1,5 +1,7 @@
 // API Configuration
-const API_URL = 'https://promptforge.vercel.app/api/enhance';
+// For local development, change to: 'http://localhost:3000/api/enhance'
+// For production, use: 'https://promptforge.vercel.app/api/enhance'
+const API_URL = 'http://localhost:3000/api/enhance'; // CHANGE THIS BASED ON YOUR SETUP
 
 // DOM Elements
 const promptInput = document.getElementById('promptInput');
@@ -129,6 +131,8 @@ async function enhancePrompt(prompt) {
         errorMessage = 'Network error - Cannot reach API server';
       } else if (response.status === 404) {
         errorMessage = 'API endpoint not found (404) - Check API_URL';
+      } else if (response.status === 405) {
+        errorMessage = 'Method Not Allowed (405) - API route may not support POST. Check app/api/enhance/route.ts';
       } else if (response.status === 500) {
         errorMessage = 'Server error (500) - API is having issues';
       } else if (response.status === 429) {

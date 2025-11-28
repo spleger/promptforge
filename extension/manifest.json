@@ -12,6 +12,7 @@
   ],
   "host_permissions": [
     "https://promptforge.vercel.app/*",
+    "http://localhost:3000/*",
     "https://*/*"
   ],
   "action": {
