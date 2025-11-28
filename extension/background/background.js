@@ -125,13 +125,45 @@ async function enhanceAndNotify(text, tabId) {
 // Parse enhanced prompt from response
 function parseEnhancedPrompt(response) {
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
-      return data.enhanced_prompt || null;
+    // Handle streaming format - data might be in chunks with "0:" prefix or newline-separated
+    let cleanedResponse = response;
+
+    // Remove streaming prefixes like "0:" that Next.js might add
+    cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
+
+    // Try to find and parse JSON objects in the response
+    // Look for the last complete JSON object (most likely to have full data)
+    const jsonRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    const jsonMatches = cleanedResponse.match(jsonRegex);
+
+    if (jsonMatches && jsonMatches.length > 0) {
+      // Try parsing from the last match backwards
+      for (let i = jsonMatches.length - 1; i >= 0; i--) {
+        try {
+          const data = JSON.parse(jsonMatches[i]);
+
+          // If we got valid data with enhanced_prompt, use it
+          if (data.enhanced_prompt) {
+            return data.enhanced_prompt;
+          }
+        } catch (e) {
+          // Try next match
+          continue;
+        }
+      }
     }
-    return response.trim();
+
+    // If JSON parsing failed, try to extract text between quotes
+    // Look for patterns like "enhanced_prompt":"text here"
+    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+    if (enhancedMatch) {
+      return enhancedMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
+
+    // Last resort: return the cleaned response as-is
+    return cleanedResponse.trim() || response.trim();
   } catch (error) {
+    console.warn('Parse error:', error);
     return response.trim();
   }
 }

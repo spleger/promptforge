@@ -135,21 +135,55 @@ async function enhancePrompt(prompt) {
 // Parse enhanced prompt from streaming response
 function parseEnhancedPrompt(response) {
   try {
-    // Try to extract JSON from the response
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
+    // Handle streaming format - data might be in chunks with "0:" prefix or newline-separated
+    let cleanedResponse = response;
+
+    // Remove streaming prefixes like "0:" that Next.js might add
+    cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
+
+    // Try to find and parse JSON objects in the response
+    // Look for the last complete JSON object (most likely to have full data)
+    const jsonRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    const jsonMatches = cleanedResponse.match(jsonRegex);
+
+    if (jsonMatches && jsonMatches.length > 0) {
+      // Try parsing from the last match backwards
+      for (let i = jsonMatches.length - 1; i >= 0; i--) {
+        try {
+          const data = JSON.parse(jsonMatches[i]);
+
+          // If we got valid data with enhanced_prompt, use it
+          if (data.enhanced_prompt) {
+            return {
+              enhanced: data.enhanced_prompt,
+              original: data.analysis?.detected_intent || null
+            };
+          }
+        } catch (e) {
+          // Try next match
+          continue;
+        }
+      }
+    }
+
+    // If JSON parsing failed, try to extract text between quotes
+    // Look for patterns like "enhanced_prompt":"text here"
+    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+    if (enhancedMatch) {
       return {
-        enhanced: data.enhanced_prompt || response.trim(),
-        original: data.analysis?.detected_intent || null
+        enhanced: enhancedMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+        original: null
       };
     }
-    // If no JSON found, return the raw response
+
+    // Last resort: return the cleaned response as-is
     return {
-      enhanced: response.trim(),
+      enhanced: cleanedResponse.trim() || response.trim(),
       original: null
     };
   } catch (error) {
+    console.warn('Parse error:', error);
+    // Return raw response as fallback
     return {
       enhanced: response.trim(),
       original: null
