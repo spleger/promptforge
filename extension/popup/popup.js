@@ -82,6 +82,10 @@ async function enhancePrompt(prompt) {
     resultSection.classList.add('hidden');
     errorState.classList.add('hidden');
 
+    console.log('Starting enhancement...');
+    console.log('API URL:', API_URL);
+    console.log('Payload:', { input: prompt.substring(0, 50) + '...', targetModel: modelSelect.value, enhancementLevel: levelSelect.value });
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -94,20 +98,46 @@ async function enhancePrompt(prompt) {
       }),
     });
 
+    console.log('Response status:', response.status, response.statusText);
+    console.log('Response headers:', [...response.headers.entries()]);
+
     if (!response.ok) {
-      let errorMessage = 'Enhancement failed';
+      let errorMessage = `API Error (${response.status} ${response.statusText})`;
+      let errorDetails = '';
+
       try {
         const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
+        console.error('Error data:', errorData);
+        errorMessage = errorData.error || errorData.message || errorMessage;
+        errorDetails = JSON.stringify(errorData);
       } catch (e) {
         // If JSON parsing fails, try to get text
         try {
           const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
+          console.error('Error text:', errorText);
+          errorDetails = errorText;
+          if (errorText && errorText.length < 200) {
+            errorMessage = errorText;
+          }
         } catch (e2) {
-          // Use default error message
+          console.error('Could not read error response');
         }
       }
+
+      // Provide more specific error messages based on status code
+      if (response.status === 0) {
+        errorMessage = 'Network error - Cannot reach API server';
+      } else if (response.status === 404) {
+        errorMessage = 'API endpoint not found (404) - Check API_URL';
+      } else if (response.status === 500) {
+        errorMessage = 'Server error (500) - API is having issues';
+      } else if (response.status === 429) {
+        errorMessage = 'Rate limited (429) - Too many requests, try again later';
+      } else if (response.status === 401 || response.status === 403) {
+        errorMessage = 'Authentication error - API key may be invalid';
+      }
+
+      console.error('Full error:', errorMessage, errorDetails);
       throw new Error(errorMessage);
     }
 
@@ -155,7 +185,18 @@ async function enhancePrompt(prompt) {
     saveToHistory(prompt, parsedResponse.enhanced);
 
   } catch (error) {
-    showError(error.message || 'Failed to enhance prompt');
+    console.error('Enhancement error:', error);
+
+    // Provide more helpful error messages
+    let userMessage = error.message;
+
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      userMessage = 'Cannot connect to API - Check your internet connection or API URL';
+    } else if (error.name === 'TypeError') {
+      userMessage = 'Network error - Cannot reach PromptForge API';
+    }
+
+    showError(userMessage || 'Failed to enhance prompt');
   } finally {
     enhanceBtn.disabled = false;
   }
