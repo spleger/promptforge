@@ -48,8 +48,8 @@ async function enhanceAndNotify(text, tabId) {
     chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' });
 
     // Make API request
-    // CHANGE THIS: Use 'http://localhost:3000/api/enhance' for local dev
-    const response = await fetch('http://localhost:3000/api/enhance', {
+    // CHANGE THIS: Use 'http://localhost:3001/api/enhance' for local dev
+    const response = await fetch('http://localhost:3001/api/enhance', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

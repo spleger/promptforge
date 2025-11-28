@@ -1,7 +1,7 @@
 // API Configuration
-// For local development, change to: 'http://localhost:3000/api/enhance'
+// For local development, change to: 'http://localhost:3001/api/enhance'
 // For production, use: 'https://promptforge.vercel.app/api/enhance'
-const API_URL = 'http://localhost:3000/api/enhance'; // CHANGE THIS BASED ON YOUR SETUP
+const API_URL = 'http://localhost:3001/api/enhance'; // CHANGE THIS BASED ON YOUR SETUP
 
 // DOM Elements
 const promptInput = document.getElementById('promptInput');
