@@ -42,25 +42,50 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent text size adjustment on mobile */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }
 
-/* Custom scrollbar for dark theme */
-::-webkit-scrollbar {
-  width: 10px;
+/* Custom scrollbar for dark theme - Desktop */
+@media (min-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #1e293b;
-}
+/* Thin scrollbar for mobile */
+@media (max-width: 639px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 5px;
-}
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 2px;
+  }
 }
 
 /* Smooth animations */
@@ -82,10 +107,17 @@
 /* Code block styling */
 pre {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 pre::-webkit-scrollbar {
-  height: 8px;
+  height: 6px;
+}
+
+@media (min-width: 640px) {
+  pre::-webkit-scrollbar {
+    height: 8px;
+  }
 }
 
 /* Keyboard shortcut styling */
@@ -108,4 +140,52 @@ kbd {
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
   animation: skeleton 1.5s ease-in-out infinite;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 639px) {
+  button,
+  a,
+  [role="button"],
+  input[type="radio"] + label,
+  input[type="checkbox"] + label {
+    min-height: 44px;
+  }
+}
+
+/* Improve focus states for accessibility */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Fix for iOS input zoom */
+@media screen and (max-width: 639px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

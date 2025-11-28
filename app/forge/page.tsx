@@ -39,23 +39,23 @@ export default function ForgePage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <Navigation />
 
-      <main className="container mx-auto px-4 py-12 max-w-5xl">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Prompt Forge
           </h1>
-          <p className="text-slate-400 text-xl mb-3">
+          <p className="text-slate-400 text-base sm:text-xl mb-2 sm:mb-3 px-2">
             Transform casual descriptions into optimized AI prompts
           </p>
-          <p className="text-slate-500 text-base max-w-3xl mx-auto">
+          <p className="text-slate-500 text-sm sm:text-base max-w-3xl mx-auto px-2">
             Turn your rough ideas into professionally structured prompts using advanced prompt engineering techniques.
           </p>
         </div>
 
         {/* Input Section */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 mb-6 border border-slate-700 shadow-2xl">
-          <h2 className="text-xl font-semibold text-white mb-4">Your Prompt</h2>
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 border border-slate-700 shadow-2xl">
+          <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Your Prompt</h2>
           <PromptInput
             value={input}
             onChange={handleInputChange}
@@ -71,8 +71,8 @@ export default function ForgePage() {
 
         {/* Output Section */}
         {(parsedResult || isLoading) && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Enhanced Result</h2>
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Enhanced Result</h2>
             <PromptOutput
               result={parsedResult}
               isLoading={isLoading}
@@ -82,9 +82,9 @@ export default function ForgePage() {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200 mb-6">
-            <h3 className="font-semibold mb-2">Error</h3>
-            <p>{error.message}</p>
+          <div className="bg-red-900/50 border border-red-500 rounded-lg p-3 sm:p-4 text-red-200 mb-4 sm:mb-6">
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">Error</h3>
+            <p className="text-sm sm:text-base">{error.message}</p>
           </div>
         )}
       </main>
