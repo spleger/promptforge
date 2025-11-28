@@ -209,53 +209,84 @@ async function enhancePrompt(prompt) {
 // Parse enhanced prompt from streaming response
 function parseEnhancedPrompt(response) {
   try {
-    // Handle streaming format - data might be in chunks with "0:" prefix or newline-separated
+    console.log('Parsing response (first 500 chars):', response.substring(0, 500));
+
     let cleanedResponse = response;
 
-    // Remove streaming prefixes like "0:", "1:", etc. that Next.js might add
+    // Handle Vercel AI SDK streaming format - remove data stream prefixes
+    // Format is often: 0:"chunk1"\n1:"chunk2"\n or similar
     cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
 
-    // Try parsing as complete JSON first (most common case)
+    // Remove markdown code block wrappers if present (```json ... ```)
+    cleanedResponse = cleanedResponse.replace(/^```json\s*/gm, '');
+    cleanedResponse = cleanedResponse.replace(/^```\s*/gm, '');
+    cleanedResponse = cleanedResponse.replace(/```$/gm, '');
+
+    // Handle quoted chunks - the AI SDK may send each chunk as a quoted string
+    // Split by newlines and parse each line
+    const lines = cleanedResponse.split('\n').filter(line => line.trim());
+    let reconstructed = '';
+
+    for (const line of lines) {
+      // Skip metadata lines (e:..., d:...)
+      if (line.startsWith('e:') || line.startsWith('d:')) {
+        continue;
+      }
+
+      // Try to parse as JSON string
+      try {
+        // If line is a quoted string, parse it
+        if (line.startsWith('"') && line.endsWith('"')) {
+          const parsed = JSON.parse(line);
+          reconstructed += parsed;
+        } else {
+          reconstructed += line;
+        }
+      } catch (e) {
+        // Not a JSON string, just append
+        reconstructed += line;
+      }
+    }
+
+    console.log('Reconstructed (first 500 chars):', reconstructed.substring(0, 500));
+
+    // Now try to parse the reconstructed JSON
     try {
-      const data = JSON.parse(cleanedResponse);
+      const data = JSON.parse(reconstructed);
       if (data.enhanced_prompt) {
+        console.log('Successfully parsed enhanced_prompt');
         return {
           enhanced: data.enhanced_prompt,
           original: data.analysis?.detected_intent || null
         };
       }
     } catch (e) {
-      // Not a complete JSON, continue with other methods
+      console.warn('Could not parse as complete JSON:', e.message);
     }
 
-    // Try to find and parse JSON objects in the response
-    // Use a more robust regex that handles nested objects
+    // Try to extract JSON from the reconstructed text
     const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
-    const jsonMatches = cleanedResponse.match(jsonRegex);
+    const jsonMatches = reconstructed.match(jsonRegex);
 
     if (jsonMatches && jsonMatches.length > 0) {
-      // Try parsing from the last match backwards (most complete data usually at the end)
       for (let i = jsonMatches.length - 1; i >= 0; i--) {
         try {
           const data = JSON.parse(jsonMatches[i]);
-
-          // If we got valid data with enhanced_prompt, use it
           if (data.enhanced_prompt) {
+            console.log('Found enhanced_prompt in JSON match');
             return {
               enhanced: data.enhanced_prompt,
               original: data.analysis?.detected_intent || null
             };
           }
         } catch (e) {
-          // Try next match
           continue;
         }
       }
     }
 
-    // If JSON parsing failed, try to extract text between quotes
-    // Look for patterns like "enhanced_prompt":"text here" (handling escaped quotes and newlines)
-    const enhancedMatch = cleanedResponse.match(/"enhanced_prompt"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
+    // Try string extraction as last resort
+    const enhancedMatch = reconstructed.match(/"enhanced_prompt"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
     if (enhancedMatch) {
       const extracted = enhancedMatch[1]
         .replace(/\\n/g, '\n')
@@ -265,6 +296,7 @@ function parseEnhancedPrompt(response) {
         .replace(/\\\\/g, '\\');
 
       if (extracted && extracted.length > 0) {
+        console.log('Extracted via regex');
         return {
           enhanced: extracted,
           original: null
@@ -272,26 +304,15 @@ function parseEnhancedPrompt(response) {
       }
     }
 
-    // Last resort: return the cleaned response as-is if it has content
-    const finalResponse = cleanedResponse.trim() || response.trim();
-    if (finalResponse && finalResponse.length > 0) {
-      return {
-        enhanced: finalResponse,
-        original: null
-      };
-    }
-
-    // Nothing worked
+    console.error('Could not parse response at all');
     return {
       enhanced: null,
       original: null
     };
   } catch (error) {
     console.error('Parse error:', error);
-    // Return raw response as fallback if it exists
-    const fallback = response?.trim();
     return {
-      enhanced: fallback || null,
+      enhanced: null,
       original: null
     };
   }
