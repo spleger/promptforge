@@ -13,10 +13,14 @@ const RequestSchema = z.object({
   path: ['input'],
 });
 
-export const runtime = 'edge';
+import { auth } from '@clerk/nextjs/server';
+import prisma from '@/lib/prisma';
+
+export const runtime = 'nodejs'; // Prisma requires Node.js runtime
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
     const body = await req.json();
     const validationResult = RequestSchema.safeParse(body);
 
@@ -60,6 +64,30 @@ export async function POST(req: Request) {
       prompt,
       maxTokens: 2500,
       temperature: 0.7,
+      onFinish: async (completion) => {
+        if (userId) {
+          try {
+            // Extract the JSON content from the completion for storage
+            // The completion.text is the full response string
+            const enhancedOutput = completion.text;
+
+            // Try to parse it to check validity and maybe store structure later
+            // For now, we store the raw output in enhancedOutput and also the structure
+
+            await prisma.prompt.create({
+              data: {
+                userId,
+                originalInput: userInput,
+                enhancedOutput: enhancedOutput, // Stores the full JSON string response
+                modelUsed: targetModel,
+                enhancement: JSON.stringify({ level: enhancementLevel }), // Store metadata
+              }
+            });
+          } catch (dbError) {
+            console.error('Failed to save prompt to DB:', dbError);
+          }
+        }
+      }
     });
 
     return result.toDataStreamResponse();
