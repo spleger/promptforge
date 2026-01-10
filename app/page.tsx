@@ -359,7 +359,7 @@ export default function Home() {
           </p>
           <p className="mt-2">
             <a
-              href="https://github.com/sven-stack/promptforge"
+              href="https://github.com/spleger/promptforge"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 transition-colors"

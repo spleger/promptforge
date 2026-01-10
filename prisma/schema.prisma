@@ -1,0 +1,20 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Prompt {
+  id             String   @id @default(cuid())
+  userId         String   // Clerk User ID
+  originalInput  String   @db.Text
+  enhancedOutput String   @db.Text
+  modelUsed      String
+  enhancement    String   // JSON string of enhancement details
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}

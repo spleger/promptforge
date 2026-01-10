@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd PromptForge browser extension (Chrome/Edge)\n\nFeatures:\n- Quick popup interface with full enhancer\n- Right-click context menu to enhance selected text\n- Floating button on text selection\n- Keyboard shortcuts (Ctrl+Shift+E, Ctrl+Shift+P)\n- Background service worker for API calls\n- Content script for webpage integration\n- Auto-copy enhanced prompts to clipboard\n- Enhancement history (last 50 items)\n- Support for all Claude models and enhancement levels\n\nInstallation:\n1. Go to chrome://extensions/\n2. Enable Developer Mode\n3. Load unpacked extension folder\n4. Start enhancing prompts!\n\nGenerated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "WebSearch",
+      "WebFetch(domain:tenor.com)",
+      "WebFetch(domain:www.hondgradje.nl)",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.imdb.com)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:giphy.com)",
+      "WebFetch(domain:makeagif.com)",
+      "WebFetch(domain:gfycat.com)",
+      "WebFetch(domain:www.filmbooster.com)",
+      "WebFetch(domain:whatthemovie.com)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "WebFetch(domain:www.tiktok.com)",
+      "Bash(cp:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(node generate-icons.js:*)",
+      "Bash(npm run dev:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

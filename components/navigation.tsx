@@ -11,7 +11,6 @@ export function Navigation() {
 
   const links = [
     { href: '/', label: 'Home' },
-    { href: '/forge', label: 'Forge' },
     { href: '/faq', label: 'FAQ' },
   ];
 
@@ -32,11 +31,10 @@ export function Navigation() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${
-                  pathname === link.href
+                className={`text-sm font-medium transition-colors ${pathname === link.href
                     ? 'text-blue-400'
                     : 'text-slate-300 hover:text-white'
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -66,11 +64,10 @@ export function Navigation() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`text-base font-medium transition-colors px-2 py-2 rounded-lg ${
-                    pathname === link.href
+                  className={`text-base font-medium transition-colors px-2 py-2 rounded-lg ${pathname === link.href
                       ? 'text-blue-400 bg-blue-500/10'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
