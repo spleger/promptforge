@@ -17,6 +17,7 @@ import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
 export const runtime = 'nodejs'; // Prisma requires Node.js runtime
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
