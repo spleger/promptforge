@@ -1,7 +1,5 @@
 // API Configuration
-// For local development, change to: 'http://localhost:3000/api/enhance'
-// For production, use: 'https://promptforge.vercel.app/api/enhance'
-const API_URL = 'http://localhost:3000/api/enhance'; // Local dev (switch back to production URL after deploying)
+const API_URL = 'https://promptforge.one/api/enhance';
 
 // DOM Elements
 const promptInput = document.getElementById('promptInput');
@@ -369,14 +367,14 @@ function saveToHistory(original, enhanced) {
 // Settings button
 if (settingsBtn) {
   settingsBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:3000' });
+    chrome.tabs.create({ url: 'https://promptforge.one/settings' });
   });
 }
 
 // History link
 historyLink.addEventListener('click', (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: 'http://localhost:3000/history' });
+  chrome.tabs.create({ url: 'https://promptforge.one/history' });
 });
 
 // Save current settings

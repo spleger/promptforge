@@ -244,17 +244,21 @@ function createWidget() {
     // Enhance button click handler
     widget.querySelector('.pf-enhance-btn').addEventListener('click', handleEnhanceClick);
 
-    // Context indicator click handler
-    widget.querySelector('.pf-context-indicator').addEventListener('click', (e) => {
+    // Context indicator click handler - use mousedown to fire before focusout
+    const contextIndicator = widget.querySelector('.pf-context-indicator');
+    contextIndicator.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    contextIndicator.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         toggleContextPanel();
     });
 
-    // Close panel when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!widget.contains(e.target)) {
-            closeContextPanel();
-        }
+    // Prevent panel clicks from closing
+    widget.querySelector('.pf-context-panel').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
     });
 
     return widget;

@@ -25,7 +25,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: undefined,
+        variables: {
+          colorPrimary: '#3b82f6',
+          colorBackground: '#0f172a',
+          colorInputBackground: '#1e293b',
+          colorInputText: '#e2e8f0',
+          colorText: '#e2e8f0',
+          colorTextSecondary: '#94a3b8',
+          colorDanger: '#ef4444',
+          colorSuccess: '#22c55e',
+          colorWarning: '#eab308',
+          borderRadius: '0.5rem',
+        },
+        elements: {
+          card: 'bg-slate-900 border border-slate-700',
+          headerTitle: 'text-white',
+          headerSubtitle: 'text-slate-400',
+          formButtonPrimary: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500',
+          formFieldInput: 'bg-slate-800 border-slate-600 text-white',
+          formFieldLabel: 'text-slate-300',
+          footerActionLink: 'text-blue-400 hover:text-blue-300',
+          identityPreview: 'bg-slate-800 border-slate-600',
+          userButtonPopoverCard: 'bg-slate-900 border border-slate-700',
+          userButtonPopoverActionButton: 'text-slate-300 hover:bg-slate-800',
+          userButtonPopoverActionButtonText: 'text-slate-300',
+          userButtonPopoverFooter: 'hidden',
+        },
+      }}
+    >
       <html lang="en" className="dark">
         <body className={inter.className}>
           {children}

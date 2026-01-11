@@ -28,26 +28,28 @@ export function Navigation() {
             </Link>
 
             <SignedIn>
-              <Link
-                href="/history"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/history'
-                  ? 'text-blue-400'
-                  : 'text-slate-300 hover:text-white'
-                  }`}
-              >
-                <History className="h-4 w-4" />
-                <span className="hidden xs:inline">History</span>
-              </Link>
-              <Link
-                href="/settings"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/settings'
-                  ? 'text-blue-400'
-                  : 'text-slate-300 hover:text-white'
-                  }`}
-              >
-                <Settings className="h-4 w-4" />
-                <span className="hidden xs:inline">Settings</span>
-              </Link>
+              <div className="flex items-center gap-3 ml-3">
+                <Link
+                  href="/history"
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/history'
+                    ? 'text-blue-400'
+                    : 'text-slate-300 hover:text-white'
+                    }`}
+                >
+                  <History className="h-4 w-4" />
+                  <span className="hidden sm:inline">History</span>
+                </Link>
+                <Link
+                  href="/settings"
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/settings'
+                    ? 'text-blue-400'
+                    : 'text-slate-300 hover:text-white'
+                    }`}
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Link>
+              </div>
             </SignedIn>
           </div>
 
