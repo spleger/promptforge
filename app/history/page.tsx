@@ -16,7 +16,7 @@ export default function HistoryPage() {
     const [prompts, setPrompts] = useState<HistoryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [copiedState, setCopiedState] = useState<{ id: string, type: 'original' | 'enhanced' } | null>(null);
 
     // Pagination state
     const [page, setPage] = useState(1);
@@ -50,9 +50,7 @@ export default function HistoryPage() {
                 });
                 setHasMore(data.hasMore);
 
-                // Update groups
-                // Note: We regroup the whole list every time. 
-                // Optimization: could append to groups, but regrouping is safer for simplicity with generic dates.
+                // Update groups via effect
             }
         } catch (error) {
             console.error('Failed to fetch history', error);
@@ -88,10 +86,7 @@ export default function HistoryPage() {
 
         setGroups(newGroups);
 
-        // Default open only the first group (dates closer to now) if fetching first page
-        if (page === 1 && Object.keys(newGroups).length > 0) {
-            // Maybe open all "Today" and "Yesterday"? 
-            // Or just initialize new keys to true?
+        if (page === 1) {
             setOpenGroups(prev => {
                 const next = { ...prev };
                 Object.keys(newGroups).forEach(k => {
@@ -115,10 +110,10 @@ export default function HistoryPage() {
         fetchHistory(nextPage);
     };
 
-    const handleCopy = (text: string, id: string) => {
+    const handleCopy = (text: string, id: string, type: 'original' | 'enhanced') => {
         navigator.clipboard.writeText(text);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
+        setCopiedState({ id, type });
+        setTimeout(() => setCopiedState(null), 2000);
     };
 
     if (!isLoaded || isLoading) {
@@ -165,14 +160,9 @@ export default function HistoryPage() {
                                 {openGroups[dateGroup] && (
                                     <div className="grid gap-6 pl-2 sm:pl-4 border-l-2 border-slate-800 ml-2.5">
                                         {groups[dateGroup].map((prompt) => {
-                                            // Determine display content: Child (edit) or Parent (original)
-                                            // If prompt has children, it means there is an edited version. We should show the latest child.
-                                            // Note: API should define children order to get latest.
                                             const latestVersion = (prompt.children && prompt.children.length > 0) ? prompt.children[0] : prompt;
                                             const isEdited = prompt.children && prompt.children.length > 0;
 
-                                            // Robust parsing using inline check or util logic (since imports might be limited, repeating robust check)
-                                            // Actually I'll rely on the existing parse logic I added or replicate safe parsing
                                             const getContent = (p: Prompt) => {
                                                 const raw = p.enhancedOutput;
                                                 try {
@@ -201,10 +191,23 @@ export default function HistoryPage() {
 
                                                     <div className="grid md:grid-cols-2 gap-6">
                                                         <div>
-                                                            <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Original Input</h3>
-                                                            <p className="text-slate-300 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Original Input</h3>
+                                                                <button
+                                                                    onClick={() => handleCopy(prompt.originalInput, prompt.id, 'original')}
+                                                                    className="text-slate-400 hover:text-white transition-colors"
+                                                                    title="Copy original prompt"
+                                                                >
+                                                                    {copiedState?.id === prompt.id && copiedState?.type === 'original' ? (
+                                                                        <Check className="w-4 h-4 text-green-400" />
+                                                                    ) : (
+                                                                        <Copy className="w-4 h-4" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                            <div className="text-slate-300 bg-slate-900/50 p-3 rounded-lg text-sm max-h-[200px] overflow-y-auto whitespace-pre-wrap scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                                                                 {prompt.originalInput}
-                                                            </p>
+                                                            </div>
                                                         </div>
 
                                                         <div>
@@ -213,20 +216,20 @@ export default function HistoryPage() {
                                                                     {isEdited ? 'Latest Version' : 'Enhanced Version'}
                                                                 </h3>
                                                                 <button
-                                                                    onClick={() => handleCopy(displayContent, prompt.id)}
+                                                                    onClick={() => handleCopy(displayContent, prompt.id, 'enhanced')}
                                                                     className="text-slate-400 hover:text-white transition-colors"
-                                                                    title="Copy prompt"
+                                                                    title="Copy enhanced prompt"
                                                                 >
-                                                                    {copiedId === prompt.id ? (
+                                                                    {copiedState?.id === prompt.id && copiedState?.type === 'enhanced' ? (
                                                                         <Check className="w-4 h-4 text-green-400" />
                                                                     ) : (
                                                                         <Copy className="w-4 h-4" />
                                                                     )}
                                                                 </button>
                                                             </div>
-                                                            <p className="text-slate-100 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3 font-mono">
+                                                            <div className="text-slate-100 bg-slate-900/50 p-3 rounded-lg text-sm font-mono max-h-[200px] overflow-y-auto whitespace-pre-wrap scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                                                                 {displayContent}
-                                                            </p>
+                                                            </div>
                                                         </div>
                                                     </div>
 
