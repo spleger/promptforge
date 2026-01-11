@@ -239,7 +239,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-1.png"
+                    src="/images/gratje/gratje1.jpg"
                     alt="Gratje"
                     width={56}
                     height={56}
@@ -262,7 +262,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-2.png"
+                    src="/images/gratje/gratje2.jpg"
                     alt="nicht_gratje"
                     width={56}
                     height={56}
@@ -285,7 +285,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-3.png"
+                    src="/images/gratje/gratje3.jpg"
                     alt="auch_gratje"
                     width={56}
                     height={56}
@@ -308,7 +308,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-4.png"
+                    src="/images/gratje/gratje4.jpg"
                     alt="mega_gratje"
                     width={56}
                     height={56}
@@ -331,7 +331,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-5.png"
+                    src="/images/gratje/gratje5.jpg"
                     alt="super_gratje"
                     width={56}
                     height={56}
@@ -354,7 +354,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-static-6.png"
+                    src="/images/gratje/gratje6.jpg"
                     alt="ultra_gratje"
                     width={56}
                     height={56}
