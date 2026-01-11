@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "PromptForge - AI Prompt Enhancer",
-  "version": "1.0.0",
-  "description": "Transform casual descriptions into optimized AI prompts instantly",
+  "version": "1.1.0",
+  "description": "Transform casual descriptions into optimized AI prompts instantly. Features floating widget on ChatGPT, Claude, Gemini, and more.",
   "permissions": [
     "activeTab",
     "contextMenus",
@@ -11,10 +11,14 @@
     "notifications"
   ],
   "host_permissions": [
+    "https://promptforge.one/*",
     "https://promptforge.vercel.app/*",
     "http://localhost:3000/*",
-    "http://localhost:3001/*",
-    "https://*/*"
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://notebooklm.google.com/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -29,10 +33,46 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/content.js"
+      ],
+      "css": [
+        "content/content.css"
+      ],
       "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://notebooklm.google.com/*"
+      ],
+      "js": [
+        "content/widget.js"
+      ],
+      "css": [
+        "content/widget.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/widget.css"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://notebooklm.google.com/*"
+      ]
     }
   ],
   "icons": {

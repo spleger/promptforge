@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, History } from 'lucide-react';
+import { Menu, X, History, Settings } from 'lucide-react';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export function Navigation() {
@@ -37,6 +37,16 @@ export function Navigation() {
               >
                 <History className="h-4 w-4" />
                 <span className="hidden xs:inline">History</span>
+              </Link>
+              <Link
+                href="/settings"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/settings'
+                  ? 'text-blue-400'
+                  : 'text-slate-300 hover:text-white'
+                  }`}
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden xs:inline">Settings</span>
               </Link>
             </SignedIn>
           </div>

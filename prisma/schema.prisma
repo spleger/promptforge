@@ -24,3 +24,15 @@ model Prompt {
   @@index([userId])
   @@index([parentId])
 }
+
+model UserSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  defaultModel    String   @default("claude-sonnet-4-5-20250929")
+  defaultLevel    String   @default("standard")
+  enabledSites    String[] @default(["chatgpt.com", "claude.ai", "gemini.google.com", "notebooklm.google.com"])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}

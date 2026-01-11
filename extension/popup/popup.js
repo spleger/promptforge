@@ -1,7 +1,7 @@
 // API Configuration
-// For local development, change to: 'http://localhost:3001/api/enhance'
+// For local development, change to: 'http://localhost:3000/api/enhance'
 // For production, use: 'https://promptforge.vercel.app/api/enhance'
-const API_URL = 'http://localhost:3001/api/enhance'; // Local dev (switch back to production URL after deploying)
+const API_URL = 'http://localhost:3000/api/enhance'; // Local dev (switch back to production URL after deploying)
 
 // DOM Elements
 const promptInput = document.getElementById('promptInput');
@@ -10,7 +10,7 @@ const levelSelect = document.getElementById('levelSelect');
 const enhanceBtn = document.getElementById('enhanceBtn');
 const loadingState = document.getElementById('loadingState');
 const resultSection = document.getElementById('resultSection');
-const originalReview = document.getElementById('originalReview');
+// const originalReview = document.getElementById('originalReview');
 const enhancedReview = document.getElementById('enhancedReview');
 const errorState = document.getElementById('errorState');
 const errorMessage = document.getElementById('errorMessage');
@@ -90,6 +90,7 @@ async function enhancePrompt(prompt) {
 
     const response = await fetch(API_URL, {
       method: 'POST',
+      credentials: 'include', // Send cookies for authentication
       headers: {
         'Content-Type': 'application/json',
       },
@@ -176,14 +177,14 @@ async function enhancePrompt(prompt) {
     console.log('Parsed successfully:', parsedResponse.enhanced.substring(0, 100) + '...');
 
     // Show result
-    originalReview.textContent = parsedResponse.original || prompt;
+    // originalReview.textContent = parsedResponse.original || prompt;
     enhancedReview.textContent = parsedResponse.enhanced;
     resultSection.classList.remove('hidden');
     loadingState.classList.add('hidden');
 
     // Store for copy actions
     window.lastEnhancedPrompt = parsedResponse.enhanced;
-    window.lastOriginalPrompt = parsedResponse.original || prompt;
+    window.lastOriginalPrompt = prompt;
 
     // Save to history
     saveToHistory(prompt, parsedResponse.enhanced);
@@ -217,11 +218,6 @@ function parseEnhancedPrompt(response) {
     // Format is often: 0:"chunk1"\n1:"chunk2"\n or similar
     cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
 
-    // Remove markdown code block wrappers if present (```json ... ```)
-    cleanedResponse = cleanedResponse.replace(/^```json\s*/gm, '');
-    cleanedResponse = cleanedResponse.replace(/^```\s*/gm, '');
-    cleanedResponse = cleanedResponse.replace(/```$/gm, '');
-
     // Handle quoted chunks - the AI SDK may send each chunk as a quoted string
     // Split by newlines and parse each line
     const lines = cleanedResponse.split('\n').filter(line => line.trim());
@@ -248,9 +244,18 @@ function parseEnhancedPrompt(response) {
       }
     }
 
+    // Check for markdown code blocks in the reconstructed text
+    // This is the key fix for Haiku/other models wrapping output
+    const markdownMatch = reconstructed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (markdownMatch && markdownMatch[1]) {
+      console.log("Found markdown block, extracting content");
+      reconstructed = markdownMatch[1];
+    }
+
     console.log('Reconstructed (first 500 chars):', reconstructed.substring(0, 500));
 
     // Now try to parse the reconstructed JSON
+    // First attempt: direct parse
     try {
       const data = JSON.parse(reconstructed);
       if (data.enhanced_prompt) {
@@ -264,44 +269,24 @@ function parseEnhancedPrompt(response) {
       console.warn('Could not parse as complete JSON:', e.message);
     }
 
-    // Try to extract JSON from the reconstructed text
-    const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
-    const jsonMatches = reconstructed.match(jsonRegex);
+    // Second attempt: Find JSON object { ... }
+    try {
+      const firstOpen = reconstructed.indexOf('{');
+      const lastClose = reconstructed.lastIndexOf('}');
 
-    if (jsonMatches && jsonMatches.length > 0) {
-      for (let i = jsonMatches.length - 1; i >= 0; i--) {
-        try {
-          const data = JSON.parse(jsonMatches[i]);
-          if (data.enhanced_prompt) {
-            console.log('Found enhanced_prompt in JSON match');
-            return {
-              enhanced: data.enhanced_prompt,
-              original: data.analysis?.detected_intent || null
-            };
-          }
-        } catch (e) {
-          continue;
+      if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+        const jsonString = reconstructed.substring(firstOpen, lastClose + 1);
+        const data = JSON.parse(jsonString);
+        if (data.enhanced_prompt) {
+          console.log('Found enhanced_prompt in extracted JSON');
+          return {
+            enhanced: data.enhanced_prompt,
+            original: data.analysis?.detected_intent || null
+          };
         }
       }
-    }
-
-    // Try string extraction as last resort
-    const enhancedMatch = reconstructed.match(/"enhanced_prompt"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
-    if (enhancedMatch) {
-      const extracted = enhancedMatch[1]
-        .replace(/\\n/g, '\n')
-        .replace(/\\r/g, '\r')
-        .replace(/\\t/g, '\t')
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, '\\');
-
-      if (extracted && extracted.length > 0) {
-        console.log('Extracted via regex');
-        return {
-          enhanced: extracted,
-          original: null
-        };
-      }
+    } catch (e) {
+      console.warn("JSON extraction failed", e);
     }
 
     console.error('Could not parse response at all');
@@ -346,7 +331,7 @@ copyPromptBtn.addEventListener('click', async () => {
 
 // Copy both reviews to clipboard
 copyReviewsBtn.addEventListener('click', async () => {
-  const originalText = window.lastOriginalPrompt || originalReview.textContent;
+  const originalText = window.lastOriginalPrompt || promptInput.value;
   const enhancedText = window.lastEnhancedPrompt || enhancedReview.textContent;
   const combinedText = `📝 Original:\n${originalText}\n\n✨ Enhanced:\n${enhancedText}`;
 
@@ -382,15 +367,16 @@ function saveToHistory(original, enhanced) {
 }
 
 // Settings button
-settingsBtn.addEventListener('click', () => {
-  chrome.runtime.openOptionsPage();
-});
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'http://localhost:3000' });
+  });
+}
 
 // History link
 historyLink.addEventListener('click', (e) => {
   e.preventDefault();
-  // TODO: Open history view
-  alert('History feature coming soon!');
+  chrome.tabs.create({ url: 'http://localhost:3000/history' });
 });
 
 // Save current settings
