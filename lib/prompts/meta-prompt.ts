@@ -115,9 +115,9 @@ Your enhanced prompt MUST:
 
   Now transform this user input into an enhanced prompt:
 
-USER INPUT: { { USER_INPUT } }
-TARGET MODEL: { { TARGET_MODEL } }
-ENHANCEMENT LEVEL: { { ENHANCEMENT_LEVEL } } `;
+USER INPUT: {{USER_INPUT}}
+TARGET MODEL: {{TARGET_MODEL}}
+ENHANCEMENT LEVEL: {{ENHANCEMENT_LEVEL}} `;
 
 export const ENHANCEMENT_LEVELS = {
   light: "Make minimal improvements - fix clarity and add basic structure only",
