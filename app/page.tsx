@@ -16,7 +16,7 @@ export default function Home() {
     enhancementLevel: 'standard',
   });
 
-  const { completion, input, handleInputChange, handleSubmit, isLoading, error } = useCompletion({
+  const { completion, input, setInput, handleInputChange, handleSubmit, isLoading, error } = useCompletion({
     api: '/api/enhance',
     body: options,
   });
@@ -81,6 +81,20 @@ export default function Home() {
               result={parsedResult}
               isLoading={isLoading}
             />
+            {parsedResult && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setInput(parsedResult.enhanced_prompt);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 text-sm"
+                >
+                  <span className="text-lg">⚡</span>
+                  <span>Use as Input (Re-improve)</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -217,7 +231,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-1.gif"
+                    src="/images/gratje/gratje-static-1.png"
                     alt="Gratje"
                     width={56}
                     height={56}
@@ -240,7 +254,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-2.gif"
+                    src="/images/gratje/gratje-static-2.png"
                     alt="nicht_gratje"
                     width={56}
                     height={56}
@@ -263,7 +277,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-3.gif"
+                    src="/images/gratje/gratje-static-3.png"
                     alt="auch_gratje"
                     width={56}
                     height={56}
@@ -286,7 +300,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-4.gif"
+                    src="/images/gratje/gratje-static-4.png"
                     alt="mega_gratje"
                     width={56}
                     height={56}
@@ -309,7 +323,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-5.gif"
+                    src="/images/gratje/gratje-static-5.png"
                     alt="super_gratje"
                     width={56}
                     height={56}
@@ -332,7 +346,7 @@ export default function Home() {
               <div className="flex items-center mb-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden mr-3 flex-shrink-0">
                   <Image
-                    src="/images/gratje/gratje-6.gif"
+                    src="/images/gratje/gratje-static-6.png"
                     alt="ultra_gratje"
                     width={56}
                     height={56}

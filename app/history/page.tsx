@@ -102,7 +102,14 @@ export default function HistoryPage() {
                                             </button>
                                         </div>
                                         <p className="text-slate-100 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3 font-mono">
-                                            {prompt.enhancedOutput}
+                                            {(() => {
+                                                try {
+                                                    const parsed = JSON.parse(prompt.enhancedOutput);
+                                                    return parsed.text || parsed.prompt || prompt.enhancedOutput;
+                                                } catch {
+                                                    return prompt.enhancedOutput;
+                                                }
+                                            })()}
                                         </p>
                                     </div>
                                 </div>
