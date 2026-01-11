@@ -36,10 +36,31 @@ export function generateShareUrl(prompt: string): string {
   return `${window.location.origin}?p=${encoded}`;
 }
 
-export function parseJsonSafely<T>(json: string): T | null {
+export function parseJsonSafely<T>(text: string): T | null {
+  if (!text) return null;
   try {
-    return JSON.parse(json) as T;
+    // 1. Try direct parse
+    return JSON.parse(text) as T;
   } catch {
-    return null;
+    try {
+      // 2. Try extracting from markdown ```json ... ``` or just ``` ... ```
+      // Regex looks for ```(json)? content ```
+      const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match && match[1]) {
+        return JSON.parse(match[1]) as T;
+      }
+
+      // 3. Try finding the first '{' and last '}'
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const jsonCandidate = text.substring(firstBrace, lastBrace + 1);
+        return JSON.parse(jsonCandidate) as T;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
   }
 }

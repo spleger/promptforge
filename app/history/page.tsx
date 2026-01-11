@@ -4,36 +4,115 @@ import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Loader2, Calendar, Copy, Check } from 'lucide-react';
+import { Loader2, Calendar, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { Prompt } from '@prisma/client';
+
+// Define extended type for Prompt with relations
+type HistoryItem = Prompt & { children?: Prompt[] };
 
 export default function HistoryPage() {
     const { isLoaded, userId } = useAuth();
     const router = useRouter();
-    const [prompts, setPrompts] = useState<Prompt[]>([]);
+    const [prompts, setPrompts] = useState<HistoryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+
+    // Grouping state
+    const [groups, setGroups] = useState<Record<string, HistoryItem[]>>({});
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         if (isLoaded && !userId) {
             router.push('/');
         } else if (isLoaded && userId) {
-            fetchHistory();
+            fetchHistory(1); // Initial fetch
         }
     }, [isLoaded, userId, router]);
 
-    const fetchHistory = async () => {
+    const fetchHistory = async (pageNum: number) => {
         try {
-            const response = await fetch('/api/history');
+            if (pageNum === 1) setIsLoading(true);
+            else setIsLoadingMore(true);
+
+            const response = await fetch(`/api/history?page=${pageNum}&limit=20`);
             if (response.ok) {
                 const data = await response.json();
-                setPrompts(data);
+                const newItems = data.items as HistoryItem[];
+
+                setPrompts(prev => {
+                    const combined = pageNum === 1 ? newItems : [...prev, ...newItems];
+                    return combined;
+                });
+                setHasMore(data.hasMore);
+
+                // Update groups
+                // Note: We regroup the whole list every time. 
+                // Optimization: could append to groups, but regrouping is safer for simplicity with generic dates.
             }
         } catch (error) {
             console.error('Failed to fetch history', error);
         } finally {
             setIsLoading(false);
+            setIsLoadingMore(false);
         }
+    };
+
+    // Effect to group prompts when prompts array changes
+    useEffect(() => {
+        const newGroups: Record<string, HistoryItem[]> = {};
+
+        prompts.forEach(prompt => {
+            const date = new Date(prompt.createdAt);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            let key = date.toLocaleDateString();
+
+            if (date.toDateString() === today.toDateString()) {
+                key = "Today";
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                key = "Yesterday";
+            }
+
+            if (!newGroups[key]) {
+                newGroups[key] = [];
+            }
+            newGroups[key].push(prompt);
+        });
+
+        setGroups(newGroups);
+
+        // Default open only the first group (dates closer to now) if fetching first page
+        if (page === 1 && Object.keys(newGroups).length > 0) {
+            // Maybe open all "Today" and "Yesterday"? 
+            // Or just initialize new keys to true?
+            setOpenGroups(prev => {
+                const next = { ...prev };
+                Object.keys(newGroups).forEach(k => {
+                    if (next[k] === undefined) next[k] = true;
+                });
+                return next;
+            });
+        }
+    }, [prompts, page]);
+
+    const toggleGroup = (group: string) => {
+        setOpenGroups(prev => ({
+            ...prev,
+            [group]: !prev[group]
+        }));
+    };
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchHistory(nextPage);
     };
 
     const handleCopy = (text: string, id: string) => {
@@ -60,71 +139,131 @@ export default function HistoryPage() {
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
                 <h1 className="text-3xl font-bold text-white mb-8">Your Prompt History</h1>
 
-                {prompts.length === 0 ? (
+                {Object.keys(groups).length === 0 && !isLoading ? (
                     <div className="bg-slate-800/50 rounded-xl p-8 text-center border border-slate-700">
                         <p className="text-slate-400 text-lg">No prompts found yet. Start generating!</p>
                     </div>
                 ) : (
-                    <div className="grid gap-6">
-                        {prompts.map((prompt) => (
-                            <div key={prompt.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-blue-500/30 transition-colors">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center text-slate-400 text-sm">
-                                        <Calendar className="w-4 h-4 mr-2" />
-                                        {new Date(prompt.createdAt).toLocaleDateString()}
-                                    </div>
-                                    <span className="bg-slate-700/50 text-slate-300 text-xs px-2 py-1 rounded">
-                                        {prompt.modelUsed}
+                    <div className="space-y-6">
+                        {Object.keys(groups).map((dateGroup) => (
+                            <div key={dateGroup} className="space-y-2">
+                                <button
+                                    onClick={() => toggleGroup(dateGroup)}
+                                    className="flex items-center text-slate-300 font-semibold text-lg hover:text-white transition-colors w-full text-left"
+                                >
+                                    {openGroups[dateGroup] ? (
+                                        <ChevronDown className="w-5 h-5 mr-2" />
+                                    ) : (
+                                        <ChevronRight className="w-5 h-5 mr-2" />
+                                    )}
+                                    {dateGroup}
+                                    <span className="ml-2 text-xs bg-slate-800 px-2 py-0.5 rounded-full text-slate-500">
+                                        {groups[dateGroup].length}
                                     </span>
-                                </div>
+                                </button>
 
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Original Input</h3>
-                                        <p className="text-slate-300 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3">
-                                            {prompt.originalInput}
-                                        </p>
-                                    </div>
+                                {openGroups[dateGroup] && (
+                                    <div className="grid gap-6 pl-2 sm:pl-4 border-l-2 border-slate-800 ml-2.5">
+                                        {groups[dateGroup].map((prompt) => {
+                                            // Determine display content: Child (edit) or Parent (original)
+                                            // If prompt has children, it means there is an edited version. We should show the latest child.
+                                            // Note: API should define children order to get latest.
+                                            const latestVersion = (prompt.children && prompt.children.length > 0) ? prompt.children[0] : prompt;
+                                            const isEdited = prompt.children && prompt.children.length > 0;
 
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider">Enhanced Version</h3>
-                                            <button
-                                                onClick={() => handleCopy(prompt.enhancedOutput, prompt.id)}
-                                                className="text-slate-400 hover:text-white transition-colors"
-                                                title="Copy enhanced prompt"
-                                            >
-                                                {copiedId === prompt.id ? (
-                                                    <Check className="w-4 h-4 text-green-400" />
-                                                ) : (
-                                                    <Copy className="w-4 h-4" />
-                                                )}
-                                            </button>
-                                        </div>
-                                        <p className="text-slate-100 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3 font-mono">
-                                            {(() => {
+                                            // Robust parsing using inline check or util logic (since imports might be limited, repeating robust check)
+                                            // Actually I'll rely on the existing parse logic I added or replicate safe parsing
+                                            const getContent = (p: Prompt) => {
+                                                const raw = p.enhancedOutput;
                                                 try {
-                                                    const parsed = JSON.parse(prompt.enhancedOutput);
-                                                    // Handle new structure (enhanced_prompt), old structure (text/prompt), or manual edit ({text})
-                                                    return parsed.enhanced_prompt || parsed.text || parsed.prompt || prompt.enhancedOutput;
+                                                    const match = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+                                                    const jsonStr = (match && match[1]) ? match[1] : raw;
+                                                    const parsed = JSON.parse(jsonStr);
+                                                    return parsed.enhanced_prompt || parsed.text || parsed.prompt || raw;
                                                 } catch {
-                                                    return prompt.enhancedOutput;
+                                                    return raw;
                                                 }
-                                            })()}
-                                        </p>
-                                    </div>
-                                </div>
-                                {/* @ts-ignore - parentId check */}
-                                {prompt.parentId && (
-                                    <div className="mt-3 flex justify-end">
-                                        <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-full flex items-center">
-                                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1.5"></span>
-                                            Edited Version
-                                        </span>
+                                            };
+
+                                            const displayContent = getContent(latestVersion);
+
+                                            return (
+                                                <div key={prompt.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-blue-500/30 transition-colors">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex items-center text-slate-400 text-sm">
+                                                            <Calendar className="w-4 h-4 mr-2" />
+                                                            {new Date(prompt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                        <span className="bg-slate-700/50 text-slate-300 text-xs px-2 py-1 rounded">
+                                                            {prompt.modelUsed}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="grid md:grid-cols-2 gap-6">
+                                                        <div>
+                                                            <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Original Input</h3>
+                                                            <p className="text-slate-300 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3">
+                                                                {prompt.originalInput}
+                                                            </p>
+                                                        </div>
+
+                                                        <div>
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider">
+                                                                    {isEdited ? 'Latest Version' : 'Enhanced Version'}
+                                                                </h3>
+                                                                <button
+                                                                    onClick={() => handleCopy(displayContent, prompt.id)}
+                                                                    className="text-slate-400 hover:text-white transition-colors"
+                                                                    title="Copy prompt"
+                                                                >
+                                                                    {copiedId === prompt.id ? (
+                                                                        <Check className="w-4 h-4 text-green-400" />
+                                                                    ) : (
+                                                                        <Copy className="w-4 h-4" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-slate-100 bg-slate-900/50 p-3 rounded-lg text-sm line-clamp-3 font-mono">
+                                                                {displayContent}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {isEdited && (
+                                                        <div className="mt-3 flex justify-end">
+                                                            <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-full flex items-center">
+                                                                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1.5"></span>
+                                                                Edited
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
                         ))}
+
+                        {hasMore && (
+                            <div className="flex justify-center pt-8 pb-4">
+                                <button
+                                    onClick={handleLoadMore}
+                                    disabled={isLoadingMore}
+                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center"
+                                >
+                                    {isLoadingMore ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Loading...
+                                        </>
+                                    ) : (
+                                        'Load More'
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

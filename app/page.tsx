@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useCompletion } from 'ai/react';
 import Image from 'next/image';
 import { Navigation } from '@/components/navigation';
@@ -16,9 +16,18 @@ export default function Home() {
     enhancementLevel: 'standard',
   });
 
+  // Ref for auto-scrolling
+  const outputRef = useRef<HTMLDivElement>(null);
+
   const { completion, input, setInput, handleInputChange, handleSubmit, isLoading, error, data } = useCompletion({
     api: '/api/enhance',
     body: options,
+    onFinish: () => {
+      // Scroll to output when finished
+      setTimeout(() => {
+        outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   });
 
   // Extract ID from the `data` returned by the hook
@@ -84,7 +93,7 @@ export default function Home() {
 
         {/* Output Section */}
         {(parsedResult || isLoading) && (
-          <div className="mb-6">
+          <div className="mb-6" ref={outputRef}>
             <h2 className="text-lg font-semibold text-white mb-3">Enhanced Result</h2>
             <PromptOutput
               result={parsedResult}
