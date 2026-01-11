@@ -184,9 +184,35 @@ export default function HistoryPage() {
                                                             <Calendar className="w-4 h-4 mr-2" />
                                                             {new Date(prompt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </div>
-                                                        <span className="bg-slate-700/50 text-slate-300 text-xs px-2 py-1 rounded">
-                                                            {prompt.modelUsed}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            {(() => {
+                                                                // Try to parse enhancement level from the enhancement field
+                                                                try {
+                                                                    const enhData = typeof prompt.enhancement === 'string'
+                                                                        ? JSON.parse(prompt.enhancement)
+                                                                        : prompt.enhancement;
+                                                                    const level = enhData?.enhancementLevel || enhData?.level;
+                                                                    if (level) {
+                                                                        const levelColors: Record<string, string> = {
+                                                                            light: 'bg-green-500/20 text-green-400',
+                                                                            standard: 'bg-blue-500/20 text-blue-400',
+                                                                            comprehensive: 'bg-purple-500/20 text-purple-400',
+                                                                        };
+                                                                        return (
+                                                                            <span className={`text-xs px-2 py-1 rounded ${levelColors[level] || 'bg-slate-600 text-slate-300'}`}>
+                                                                                {level.charAt(0).toUpperCase() + level.slice(1)}
+                                                                            </span>
+                                                                        );
+                                                                    }
+                                                                } catch {
+                                                                    // Enhancement field not valid JSON
+                                                                }
+                                                                return null;
+                                                            })()}
+                                                            <span className="bg-slate-700/50 text-slate-300 text-xs px-2 py-1 rounded">
+                                                                {prompt.modelUsed}
+                                                            </span>
+                                                        </div>
                                                     </div>
 
                                                     <div className="grid md:grid-cols-2 gap-6">

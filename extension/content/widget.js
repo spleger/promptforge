@@ -40,12 +40,12 @@ const SITE_CONFIGS = {
         }
     },
     'claude.ai': {
-        textareaSelector: '[contenteditable="true"].ProseMirror, div[contenteditable="true"]',
-        messageSelector: '[data-testid="user-message"], [data-testid="assistant-message"], .font-claude-message',
-        // Claude's model selector - look for model name in various places
+        textareaSelector: '[contenteditable="true"].ProseMirror, div[contenteditable="true"], [data-placeholder]',
+        // Better Claude message selectors - look for conversation containers
+        messageSelector: '[data-is-streaming], [class*="Message"], [class*="message"], .prose, .whitespace-pre-wrap',
         modelSelector: 'button[data-testid="model-selector"] span, [class*="ModelSelector"] span, [aria-label*="model"] span',
         defaultModel: 'Claude Sonnet 4.5',
-        defaultContext: 200000, // Default Claude context - NOT 1M unless detected
+        defaultContext: 200000,
         modelMap: {
             'sonnet 4.5': 200000,
             'sonnet 4': 200000,
@@ -83,14 +83,15 @@ const SITE_CONFIGS = {
     }
 };
 
-// Generic config for user-added sites
+// Generic config for user-added sites (no context tracking)
 const GENERIC_CONFIG = {
     textareaSelector: 'textarea, [contenteditable="true"], input[type="text"]',
-    messageSelector: '.message, [class*="message"], [role="article"]',
+    messageSelector: null, // No message tracking for custom sites
     modelSelector: null,
-    defaultModel: 'Unknown',
-    defaultContext: 128000,
-    modelMap: {}
+    defaultModel: 'Custom Site',
+    defaultContext: null, // null means don't show context indicator
+    modelMap: {},
+    isCustomSite: true
 };
 
 // State
@@ -113,7 +114,7 @@ function getSiteConfig() {
 
     // Check if user added this site as custom
     if (userSettings?.enabledSites?.includes(hostname)) {
-        return { ...GENERIC_CONFIG, defaultModel: hostname };
+        return { ...GENERIC_CONFIG, defaultModel: hostname, isCustomSite: true };
     }
 
     // Check if it's a custom site that matches a pattern
@@ -259,59 +260,80 @@ function formatTokens(count) {
 function createWidget() {
     const widget = document.createElement('div');
     widget.className = 'pf-widget';
-    widget.innerHTML = `
-    <button class="pf-enhance-btn" title="Enhance with PromptForge">
-      <span class="pf-btn-icon">🔥</span>
-      <span class="pf-btn-text">Enhance</span>
-    </button>
-    <div class="pf-context-indicator" title="Click to see details">
-      <span class="pf-context-dot green"></span>
-      <span class="pf-context-text">0K/200K</span>
-    </div>
-    <div class="pf-context-panel">
-      <div class="pf-context-title">Context Usage</div>
-      <div class="pf-progress-bar">
-        <div class="pf-progress-fill green" style="width: 0%"></div>
+
+    // Check if this is a custom site (no context tracking)
+    const config = getSiteConfig();
+    const isCustomSite = config?.isCustomSite || config?.defaultContext === null;
+
+    if (isCustomSite) {
+        // Minimal widget for custom sites - just the enhance button
+        widget.innerHTML = `
+      <button class="pf-enhance-btn" title="Enhance with PromptForge">
+        <span class="pf-btn-icon">🔥</span>
+        <span class="pf-btn-text">Enhance</span>
+      </button>
+    `;
+    } else {
+        // Full widget with context tracking for known AI sites
+        widget.innerHTML = `
+      <button class="pf-enhance-btn" title="Enhance with PromptForge">
+        <span class="pf-btn-icon">🔥</span>
+        <span class="pf-btn-text">Enhance</span>
+      </button>
+      <div class="pf-context-indicator" title="Click to see details">
+        <span class="pf-context-dot green"></span>
+        <span class="pf-context-text">0K/200K</span>
       </div>
-      <div class="pf-stat-row">
-        <span><span class="pf-icon">🧑</span>You</span>
-        <span class="pf-value pf-user-tokens">0</span>
+      <div class="pf-context-panel">
+        <div class="pf-context-title">Context Usage</div>
+        <div class="pf-progress-bar">
+          <div class="pf-progress-fill green" style="width: 0%"></div>
+        </div>
+        <div class="pf-stat-row">
+          <span><span class="pf-icon">🧑</span>You</span>
+          <span class="pf-value pf-user-tokens">0</span>
+        </div>
+        <div class="pf-stat-row">
+          <span><span class="pf-icon">🤖</span>AI</span>
+          <span class="pf-value pf-ai-tokens">0</span>
+        </div>
+        <div class="pf-divider"></div>
+        <div class="pf-stat-row">
+          <span>Total</span>
+          <span class="pf-value pf-total-tokens">0 / 200K</span>
+        </div>
+        <div class="pf-model-info">
+          <span>📊</span>
+          <span class="pf-model-name">Detecting...</span>
+        </div>
       </div>
-      <div class="pf-stat-row">
-        <span><span class="pf-icon">🤖</span>AI</span>
-        <span class="pf-value pf-ai-tokens">0</span>
-      </div>
-      <div class="pf-divider"></div>
-      <div class="pf-stat-row">
-        <span>Total</span>
-        <span class="pf-value pf-total-tokens">0 / 200K</span>
-      </div>
-      <div class="pf-model-info">
-        <span>📊</span>
-        <span class="pf-model-name">Detecting...</span>
-      </div>
-    </div>
-  `;
+    `;
+    }
 
     // Enhance button click handler
     widget.querySelector('.pf-enhance-btn').addEventListener('click', handleEnhanceClick);
 
-    // Context indicator click handler - use mousedown to fire before focusout
+    // Context indicator click handler (only for known sites)
     const contextIndicator = widget.querySelector('.pf-context-indicator');
-    contextIndicator.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-    contextIndicator.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleContextPanel();
-    });
+    if (contextIndicator) {
+        contextIndicator.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        contextIndicator.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleContextPanel();
+        });
+    }
 
     // Prevent panel clicks from closing
-    widget.querySelector('.pf-context-panel').addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-    });
+    const panel = widget.querySelector('.pf-context-panel');
+    if (panel) {
+        panel.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+    }
 
     return widget;
 }
@@ -459,30 +481,32 @@ function positionWidget(textarea) {
 
     const rect = textarea.getBoundingClientRect();
     const widgetHeight = 40;
-    const panelHeight = 200; // Approximate panel height
+    const panelHeight = 240; // Approximate panel height
     const viewportHeight = window.innerHeight;
 
     // Check if there's enough space above the textarea
     const spaceAbove = rect.top;
-    const spaceBelow = viewportHeight - rect.bottom;
 
     // Decide if widget should be above or below textarea
     let widgetTop;
-    let openUpward = false;
 
     if (spaceAbove > widgetHeight + 16) {
         // Position above textarea
         widgetTop = window.scrollY + rect.top - widgetHeight - 8;
-        // Panel should open downward (below widget) if not enough space above for panel
-        openUpward = spaceAbove < (widgetHeight + panelHeight + 32);
     } else {
         // Position below textarea
         widgetTop = window.scrollY + rect.bottom + 8;
-        openUpward = true; // Panel opens upward when widget is below
     }
 
     currentWidget.style.top = `${widgetTop}px`;
     currentWidget.style.left = `${window.scrollX + rect.right - currentWidget.offsetWidth}px`;
+
+    // Calculate widget's viewport position for panel direction
+    const widgetRect = currentWidget.getBoundingClientRect();
+    const spaceBelowWidget = viewportHeight - widgetRect.bottom;
+
+    // Panel should open upward if there's not enough space below for the panel
+    const openUpward = spaceBelowWidget < panelHeight;
 
     // Set panel direction class
     const panel = currentWidget.querySelector('.pf-context-panel');
@@ -539,17 +563,25 @@ function hideWidget() {
 /**
  * Initialize widget for current site
  */
-function init() {
+async function init() {
+    console.log('[PromptForge] Starting initialization...');
+
+    // Load user settings first (needed to check custom sites)
+    await loadUserSettings();
+
+    const hostname = window.location.hostname.replace('www.', '');
     const config = getSiteConfig();
-    if (!config) {
-        console.log('[PromptForge] Site not supported');
+
+    // Check if this site is enabled
+    const isBuiltIn = !!SITE_CONFIGS[hostname];
+    const isEnabledCustom = userSettings?.enabledSites?.includes(hostname);
+
+    if (!config && !isEnabledCustom) {
+        console.log('[PromptForge] Site not supported or enabled:', hostname);
         return;
     }
 
-    console.log('[PromptForge] Initializing widget for', window.location.hostname);
-
-    // Load user settings
-    loadUserSettings();
+    console.log('[PromptForge] Initializing widget for', hostname, isBuiltIn ? '(built-in)' : '(custom)');
 
     // Inject widget CSS
     const link = document.createElement('link');
@@ -557,11 +589,18 @@ function init() {
     link.href = chrome.runtime.getURL('content/widget.css');
     document.head.appendChild(link);
 
+    // Get the actual config to use
+    const activeConfig = config || { ...GENERIC_CONFIG, isCustomSite: true };
+
     // Listen for focus on textareas
     document.addEventListener('focusin', (e) => {
         const target = e.target;
-        if (target.matches(config.textareaSelector)) {
-            showWidget(target);
+        try {
+            if (target.matches && target.matches(activeConfig.textareaSelector)) {
+                showWidget(target);
+            }
+        } catch (err) {
+            // Selector might not be valid for this site
         }
     });
 
@@ -575,8 +614,10 @@ function init() {
         }, 150);
     });
 
-    // Update context periodically
-    setInterval(updateContextDisplay, 5000);
+    // Update context periodically (only for known sites)
+    if (!activeConfig.isCustomSite) {
+        setInterval(updateContextDisplay, 5000);
+    }
 
     // Reposition on scroll/resize
     window.addEventListener('scroll', () => {

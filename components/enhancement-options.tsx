@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { EnhancementOptions } from '@/lib/types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface EnhancementOptionsProps {
   options: EnhancementOptions;
@@ -53,6 +53,14 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
   const [modelFamily, setModelFamily] = useState<'opus' | 'sonnet' | 'haiku'>(
     getModelFamily(options.targetModel)
   );
+
+  // Sync modelFamily when options.targetModel changes externally (e.g., from settings)
+  useEffect(() => {
+    const newFamily = getModelFamily(options.targetModel);
+    if (newFamily !== modelFamily) {
+      setModelFamily(newFamily);
+    }
+  }, [options.targetModel]);
 
   const handleFamilyChange = (family: 'opus' | 'sonnet' | 'haiku') => {
     setModelFamily(family);

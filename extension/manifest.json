@@ -46,11 +46,7 @@
     },
     {
       "matches": [
-        "https://chatgpt.com/*",
-        "https://chat.openai.com/*",
-        "https://claude.ai/*",
-        "https://gemini.google.com/*",
-        "https://notebooklm.google.com/*"
+        "<all_urls>"
       ],
       "js": [
         "content/widget.js"
