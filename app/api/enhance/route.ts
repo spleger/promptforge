@@ -1,5 +1,5 @@
 import { anthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
+import { streamText, StreamData } from 'ai';
 import { z } from 'zod';
 import { META_PROMPT, ENHANCEMENT_LEVELS } from '@/lib/prompts/meta-prompt';
 
@@ -59,6 +59,9 @@ export async function POST(req: Request) {
       .replace('{{TARGET_MODEL}}', targetModel)
       .replace('{{ENHANCEMENT_LEVEL}}', ENHANCEMENT_LEVELS[enhancementLevel]);
 
+    // Create a StreamData object to send additional data
+    const data = new StreamData();
+
     // Use the model ID directly
     const result = await streamText({
       model: anthropic(targetModel),
@@ -69,13 +72,9 @@ export async function POST(req: Request) {
         if (userId) {
           try {
             // Extract the JSON content from the completion for storage
-            // The completion.text is the full response string
             const enhancedOutput = completion.text;
 
-            // Try to parse it to check validity and maybe store structure later
-            // For now, we store the raw output in enhancedOutput and also the structure
-
-            await prisma.prompt.create({
+            const savedPrompt = await prisma.prompt.create({
               data: {
                 userId,
                 originalInput: userInput,
@@ -84,14 +83,21 @@ export async function POST(req: Request) {
                 enhancement: JSON.stringify({ level: enhancementLevel }), // Store metadata
               }
             });
+
+            // Append the prompt ID to the stream data
+            data.append({ promptId: savedPrompt.id });
           } catch (dbError) {
             console.error('Failed to save prompt to DB:', dbError);
+          } finally {
+            await data.close();
           }
+        } else {
+          await data.close();
         }
       }
     });
 
-    return result.toDataStreamResponse();
+    return result.toDataStreamResponse({ data });
   } catch (error) {
     console.error('Enhancement error:', error);
 

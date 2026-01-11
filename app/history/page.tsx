@@ -105,7 +105,8 @@ export default function HistoryPage() {
                                             {(() => {
                                                 try {
                                                     const parsed = JSON.parse(prompt.enhancedOutput);
-                                                    return parsed.text || parsed.prompt || prompt.enhancedOutput;
+                                                    // Handle new structure (enhanced_prompt), old structure (text/prompt), or manual edit ({text})
+                                                    return parsed.enhanced_prompt || parsed.text || parsed.prompt || prompt.enhancedOutput;
                                                 } catch {
                                                     return prompt.enhancedOutput;
                                                 }
@@ -113,6 +114,15 @@ export default function HistoryPage() {
                                         </p>
                                     </div>
                                 </div>
+                                {/* @ts-ignore - parentId check */}
+                                {prompt.parentId && (
+                                    <div className="mt-3 flex justify-end">
+                                        <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-full flex items-center">
+                                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1.5"></span>
+                                            Edited Version
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

@@ -15,6 +15,12 @@ model Prompt {
   modelUsed      String
   enhancement    String   // JSON string of enhancement details
   createdAt      DateTime @default(now())
+  
+  // Self-relation for edit history
+  parentId       String?
+  parent         Prompt?  @relation("PromptHistory", fields: [parentId], references: [id])
+  children       Prompt[] @relation("PromptHistory")
 
   @@index([userId])
+  @@index([parentId])
 }

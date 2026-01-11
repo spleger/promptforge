@@ -16,10 +16,18 @@ export default function Home() {
     enhancementLevel: 'standard',
   });
 
-  const { completion, input, setInput, handleInputChange, handleSubmit, isLoading, error } = useCompletion({
+  const { completion, input, setInput, handleInputChange, handleSubmit, isLoading, error, data } = useCompletion({
     api: '/api/enhance',
     body: options,
   });
+
+  // Extract ID from the `data` returned by the hook
+  const currentPromptId = useMemo(() => {
+    if (!data || !Array.isArray(data)) return null;
+    const lastItem = data[data.length - 1];
+    // @ts-ignore
+    return lastItem?.promptId || null;
+  }, [data]);
 
   // Parse the streamed JSON response
   const parsedResult = useMemo(() => {
@@ -28,42 +36,43 @@ export default function Home() {
     try {
       const jsonMatch = completion.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return parseJsonSafely<EnhancementResult>(jsonMatch[0]);
+        const parsed = parseJsonSafely<EnhancementResult>(jsonMatch[0]);
+        if (parsed) {
+          // Inject the ID if we have it
+          return { ...parsed, id: currentPromptId || undefined };
+        }
+        return parsed;
       }
       return null;
     } catch {
       return null;
     }
-  }, [completion]);
+  }, [completion, currentPromptId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <Navigation />
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl">
-        {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-5xl">
+        {/* Compact Hero Section */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             PromptForge
           </h1>
-          <p className="text-slate-300 text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 px-2">
-            Transform casual descriptions into optimized AI prompts
-          </p>
-          <p className="text-slate-400 text-sm sm:text-base lg:text-lg max-w-3xl mx-auto mb-2 px-2">
-            Turn your rough ideas into professionally structured prompts using advanced prompt engineering techniques.
-          </p>
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Powered by Claude Sonnet 4.5
+          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto px-2">
+            Transform casual descriptions into optimized AI prompts. Powered by Claude Sonnet 4.5.
           </p>
         </div>
 
         {/* Prompt Enhancer - At the top for easy access */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 border border-slate-700 shadow-2xl">
-          <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Your Prompt</h2>
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 mb-6 border border-slate-700 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white mb-3">Your Prompt</h2>
           <PromptInput
             value={input}
             onChange={handleInputChange}
-            onSubmit={handleSubmit}
+            onSubmit={(e) => {
+              handleSubmit(e);
+            }}
             isLoading={isLoading}
           />
 
@@ -75,26 +84,16 @@ export default function Home() {
 
         {/* Output Section */}
         {(parsedResult || isLoading) && (
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Enhanced Result</h2>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Enhanced Result</h2>
             <PromptOutput
               result={parsedResult}
               isLoading={isLoading}
+              onReImprove={(text) => {
+                setInput(text);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
-            {parsedResult && (
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => {
-                    setInput(parsedResult.enhanced_prompt);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 text-sm"
-                >
-                  <span className="text-lg">⚡</span>
-                  <span>Use as Input (Re-improve)</span>
-                </button>
-              </div>
-            )}
           </div>
         )}
 

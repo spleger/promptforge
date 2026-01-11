@@ -12,6 +12,7 @@ export interface PromptAnalysis {
 }
 
 export interface EnhancementResult {
+  id?: string;
   analysis: PromptAnalysis;
   enhanced_prompt: string;
   explanation: string;

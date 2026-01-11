@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Copy, Check, ChevronDown, ChevronUp, Lightbulb, Loader2 } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronUp, Lightbulb, Loader2, Save, ExternalLink } from 'lucide-react';
 import { EnhancementResult } from '@/lib/types';
 import { copyToClipboard } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -23,17 +24,75 @@ import { toast } from 'sonner';
 interface PromptOutputProps {
   result: EnhancementResult | null;
   isLoading: boolean;
+  onReImprove?: (text: string) => void;
 }
 
-export function PromptOutput({ result, isLoading }: PromptOutputProps) {
+export function PromptOutput({ result, isLoading, onReImprove }: PromptOutputProps) {
   const [copied, setCopied] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
-  const handleCopy = async () => {
-    if (!result?.enhanced_prompt) return;
+  // Editing state
+  const [content, setContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedContent, setLastSavedContent] = useState('');
 
-    const success = await copyToClipboard(result.enhanced_prompt);
+  // Use a ref to track the current prompt ID (could be the original or a child)
+  const currentIdRef = useRef<string | undefined>(undefined);
+  // Track parent ID to link history
+  const parentIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (result) {
+      setContent(result.enhanced_prompt);
+      setLastSavedContent(result.enhanced_prompt);
+      // If this is a fresh result from the stream, establish IDs
+      if (result.id) {
+        currentIdRef.current = undefined; // We don't edit the original directly usually, but creating a child
+        parentIdRef.current = result.id;  // The original result is the parent
+      }
+    }
+  }, [result]);
+
+  // Debounced Save
+  useEffect(() => {
+    if (!content || content === lastSavedContent || !parentIdRef.current) return;
+
+    const timer = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const response = await fetch('/api/prompt/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: currentIdRef.current, // If we already created a child, update it
+            parentId: parentIdRef.current, // Link to original
+            content,
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.id) {
+            currentIdRef.current = data.id; // Store the ID of the child/edit
+          }
+          setLastSavedContent(content);
+        }
+      } catch (error) {
+        console.error('Auto-save failed', error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000); // Save after 1 second of inactivity
+
+    return () => clearTimeout(timer);
+  }, [content, lastSavedContent, parentIdRef]);
+
+  const handleCopy = async () => {
+    if (!content) return;
+
+    const success = await copyToClipboard(content);
     if (success) {
       setCopied(true);
       toast.success('Copied to clipboard!');
@@ -77,7 +136,7 @@ export function PromptOutput({ result, isLoading }: PromptOutputProps) {
     <div className="space-y-3 sm:space-y-4">
       {/* Enhanced Prompt Card */}
       <Card className="bg-slate-800/50 border-slate-700">
-        <CardHeader className="p-4 sm:p-6">
+        <CardHeader className="p-4 sm:p-6 pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
               Enhanced Prompt
@@ -93,36 +152,67 @@ export function PromptOutput({ result, isLoading }: PromptOutputProps) {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </CardTitle>
-            <Button
-              onClick={handleCopy}
-              size="sm"
-              variant="outline"
-              className="bg-slate-700 border-slate-600 hover:bg-slate-600 text-white w-full sm:w-auto"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
-                </>
+              {isSaving && (
+                <span className="text-xs text-slate-400 font-normal flex items-center animate-pulse">
+                  <Save className="w-3 h-3 mr-1" /> Saving...
+                </span>
               )}
-            </Button>
+            </CardTitle>
+            <div className="flex gap-2 w-full sm:w-auto">
+              {onReImprove && (
+                <Button
+                  onClick={() => onReImprove(content)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-blue-300 hover:text-blue-200 hover:bg-blue-900/20"
+                  title="Use this result as input for another round"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Re-improve
+                </Button>
+              )}
+              <Button
+                onClick={handleCopy}
+                size="sm"
+                variant="outline"
+                className="bg-slate-700 border-slate-600 hover:bg-slate-600 text-white flex-1 sm:flex-none"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
           <CardDescription className="text-slate-400 text-sm mt-2">
             {result.explanation}
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-          <div className="bg-slate-900/70 rounded-lg p-3 sm:p-4 border border-slate-700">
-            <pre className="whitespace-pre-wrap text-xs sm:text-sm text-slate-200 font-mono leading-relaxed overflow-x-auto">
-              {result.enhanced_prompt}
-            </pre>
+        <CardContent className="p-4 sm:p-6 pt-2">
+          <div className="relative">
+            <Textarea
+              value={content}
+              onChange={(e) => {
+                setContent(e.target.value);
+                setIsEditing(true);
+              }}
+              className="min-h-[200px] bg-slate-900/70 border-slate-700 text-slate-200 font-mono text-sm leading-relaxed resize-y focus:ring-blue-500/50"
+              spellCheck={false}
+            />
+            <div className="absolute bottom-2 right-2 text-xs text-slate-500 pointer-events-none">
+              {content.length} chars
+            </div>
           </div>
+          <p className="text-xs text-slate-500 mt-2 text-right">
+            {isEditing ? 'Edits are auto-saved to history' : 'You can edit this prompt directly'}
+          </p>
         </CardContent>
       </Card>
 
