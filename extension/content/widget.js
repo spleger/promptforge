@@ -9,52 +9,64 @@ const API_BASE = 'https://promptforge.one';
 // Site configurations for different AI providers
 const SITE_CONFIGS = {
     'chatgpt.com': {
-        textareaSelector: '#prompt-textarea, [contenteditable="true"][data-id]',
+        textareaSelector: '#prompt-textarea, [contenteditable="true"][data-id], div[contenteditable="true"]',
         messageSelector: '[data-message-author-role]',
-        modelSelector: '[data-testid="model-switcher"] span, [data-state="closed"][role="combobox"] span',
-        defaultModel: 'GPT-4o',
+        // Multiple selectors for model name - ChatGPT changes UI frequently
+        modelSelector: '[data-testid="model-switcher"] span, button[aria-haspopup="menu"] span, [aria-label*="Model"] span, .text-token-text-secondary',
+        defaultModel: 'GPT-5.2',
+        defaultContext: 400000,
         modelMap: {
+            'gpt-5.2': 400000,
+            'gpt-5.1': 400000,
+            'gpt-5': 400000,
+            'gpt-4.1': 1000000,
             'gpt-4o': 128000,
             'gpt-4': 128000,
-            'gpt-4.1': 1000000,
-            'gpt-5': 400000,
-            'o3': 200000,
             'o4': 200000,
+            'o3': 200000,
         }
     },
     'chat.openai.com': {
         textareaSelector: '#prompt-textarea, [contenteditable="true"]',
         messageSelector: '[data-message-author-role]',
         modelSelector: '[data-testid="model-switcher"] span',
-        defaultModel: 'GPT-4o',
+        defaultModel: 'GPT-5.2',
+        defaultContext: 400000,
         modelMap: {
+            'gpt-5.2': 400000,
+            'gpt-5': 400000,
             'gpt-4o': 128000,
             'gpt-4': 128000,
         }
     },
     'claude.ai': {
         textareaSelector: '[contenteditable="true"].ProseMirror, div[contenteditable="true"]',
-        messageSelector: '[data-testid="user-message"], [data-testid="assistant-message"]',
-        modelSelector: 'button[data-testid="model-selector"] span, [class*="ModelSelector"] span',
-        defaultModel: 'Claude Sonnet',
+        messageSelector: '[data-testid="user-message"], [data-testid="assistant-message"], .font-claude-message',
+        // Claude's model selector - look for model name in various places
+        modelSelector: 'button[data-testid="model-selector"] span, [class*="ModelSelector"] span, [aria-label*="model"] span',
+        defaultModel: 'Claude Sonnet 4.5',
+        defaultContext: 200000, // Default Claude context - NOT 1M unless detected
         modelMap: {
-            'sonnet 4.5': 1000000,
-            'sonnet 4': 1000000,
+            'sonnet 4.5': 200000,
+            'sonnet 4': 200000,
             'sonnet 3.5': 200000,
             'opus 4.5': 200000,
+            'opus 4': 200000,
             'opus': 200000,
+            'haiku 4.5': 200000,
             'haiku': 200000,
         }
     },
     'gemini.google.com': {
-        textareaSelector: 'rich-textarea [contenteditable="true"], [contenteditable="true"][aria-label*="message"]',
-        messageSelector: '.conversation-turn, [data-message-id]',
-        modelSelector: '[data-model-selector] span, button[aria-label*="model"] span',
-        defaultModel: 'Gemini',
+        textareaSelector: 'rich-textarea [contenteditable="true"], [contenteditable="true"][aria-label*="message"], textarea',
+        messageSelector: '.conversation-turn, [data-message-id], message-content',
+        modelSelector: '[data-model-selector] span, button[aria-label*="model"] span, .model-name',
+        defaultModel: 'Gemini 2.5',
+        defaultContext: 1048576,
         modelMap: {
-            'gemini 2.5': 1048576,
             'gemini 2.5 pro': 1048576,
             'gemini 2.5 flash': 1048576,
+            'gemini 2.5': 1048576,
             'gemini 1.5 pro': 2000000,
             'gemini': 1000000,
         }
@@ -62,12 +74,23 @@ const SITE_CONFIGS = {
     'notebooklm.google.com': {
         textareaSelector: '[contenteditable="true"], textarea',
         messageSelector: '.message-content, [data-message]',
-        modelSelector: null, // NotebookLM doesn't show model selector
+        modelSelector: null,
         defaultModel: 'NotebookLM',
+        defaultContext: 1000000,
         modelMap: {
             'notebooklm': 1000000,
         }
     }
+};
+
+// Generic config for user-added sites
+const GENERIC_CONFIG = {
+    textareaSelector: 'textarea, [contenteditable="true"], input[type="text"]',
+    messageSelector: '.message, [class*="message"], [role="article"]',
+    modelSelector: null,
+    defaultModel: 'Unknown',
+    defaultContext: 128000,
+    modelMap: {}
 };
 
 // State
@@ -82,7 +105,27 @@ let isEnhancing = false;
  */
 function getSiteConfig() {
     const hostname = window.location.hostname.replace('www.', '');
-    return SITE_CONFIGS[hostname] || null;
+
+    // Check built-in configs first
+    if (SITE_CONFIGS[hostname]) {
+        return SITE_CONFIGS[hostname];
+    }
+
+    // Check if user added this site as custom
+    if (userSettings?.enabledSites?.includes(hostname)) {
+        return { ...GENERIC_CONFIG, defaultModel: hostname };
+    }
+
+    // Check if it's a custom site that matches a pattern
+    if (userSettings?.customSites) {
+        for (const site of userSettings.customSites) {
+            if (hostname.includes(site) || site.includes(hostname)) {
+                return { ...GENERIC_CONFIG, defaultModel: site };
+            }
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -156,21 +199,30 @@ function getContextUsage() {
         }
     });
 
-    // Detect current model
+    // Use config defaults
     let modelName = config.defaultModel;
-    let contextLimit = Object.values(config.modelMap)[0] || 200000;
+    let contextLimit = config.defaultContext || 200000;
 
+    // Try to detect model from page
     if (config.modelSelector) {
-        const modelEl = document.querySelector(config.modelSelector);
-        if (modelEl) {
-            const modelText = modelEl.textContent?.toLowerCase() || '';
-            for (const [key, limit] of Object.entries(config.modelMap)) {
-                if (modelText.includes(key.toLowerCase())) {
-                    modelName = key;
-                    contextLimit = limit;
-                    break;
+        try {
+            const modelEls = document.querySelectorAll(config.modelSelector);
+            for (const modelEl of modelEls) {
+                const modelText = (modelEl.textContent || '').toLowerCase().trim();
+                if (!modelText || modelText.length > 50) continue; // Skip empty or too long
+
+                // Check against known models
+                for (const [key, limit] of Object.entries(config.modelMap)) {
+                    if (modelText.includes(key.toLowerCase())) {
+                        modelName = key.charAt(0).toUpperCase() + key.slice(1);
+                        contextLimit = limit;
+                        break;
+                    }
                 }
+                if (modelName !== config.defaultModel) break;
             }
+        } catch (e) {
+            console.warn('[PromptForge] Model detection error:', e);
         }
     }
 
@@ -406,11 +458,43 @@ function positionWidget(textarea) {
     if (!currentWidget) return;
 
     const rect = textarea.getBoundingClientRect();
-    const widgetHeight = 36;
+    const widgetHeight = 40;
+    const panelHeight = 200; // Approximate panel height
+    const viewportHeight = window.innerHeight;
 
-    // Position above the textarea, aligned to right
-    currentWidget.style.top = `${window.scrollY + rect.top - widgetHeight - 8}px`;
+    // Check if there's enough space above the textarea
+    const spaceAbove = rect.top;
+    const spaceBelow = viewportHeight - rect.bottom;
+
+    // Decide if widget should be above or below textarea
+    let widgetTop;
+    let openUpward = false;
+
+    if (spaceAbove > widgetHeight + 16) {
+        // Position above textarea
+        widgetTop = window.scrollY + rect.top - widgetHeight - 8;
+        // Panel should open downward (below widget) if not enough space above for panel
+        openUpward = spaceAbove < (widgetHeight + panelHeight + 32);
+    } else {
+        // Position below textarea
+        widgetTop = window.scrollY + rect.bottom + 8;
+        openUpward = true; // Panel opens upward when widget is below
+    }
+
+    currentWidget.style.top = `${widgetTop}px`;
     currentWidget.style.left = `${window.scrollX + rect.right - currentWidget.offsetWidth}px`;
+
+    // Set panel direction class
+    const panel = currentWidget.querySelector('.pf-context-panel');
+    if (panel) {
+        if (openUpward) {
+            panel.classList.add('open-upward');
+            panel.classList.remove('open-downward');
+        } else {
+            panel.classList.remove('open-upward');
+            panel.classList.add('open-downward');
+        }
+    }
 }
 
 /**

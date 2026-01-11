@@ -67,7 +67,9 @@
 }
 
 @keyframes pf-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Context Indicator */
@@ -93,9 +95,20 @@
   transition: background 0.3s ease;
 }
 
-.pf-context-dot.green { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
-.pf-context-dot.yellow { background: #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.5); }
-.pf-context-dot.red { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+.pf-context-dot.green {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.pf-context-dot.yellow {
+  background: #eab308;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+}
+
+.pf-context-dot.red {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
 
 .pf-context-text {
   color: #94a3b8;
@@ -106,9 +119,7 @@
 /* Expanded Context Panel */
 .pf-context-panel {
   position: absolute;
-  top: 100%;
   right: 0;
-  margin-top: 8px;
   min-width: 220px;
   background: rgba(15, 23, 42, 0.98);
   border: 1px solid rgba(59, 130, 246, 0.3);
@@ -116,9 +127,27 @@
   padding: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   opacity: 0;
-  transform: translateY(-8px) scale(0.95);
   transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: none;
+}
+
+/* Default: open downward */
+.pf-context-panel,
+.pf-context-panel.open-downward {
+  top: 100%;
+  bottom: auto;
+  margin-top: 8px;
+  margin-bottom: 0;
+  transform: translateY(-8px) scale(0.95);
+}
+
+/* Open upward when near bottom of screen */
+.pf-context-panel.open-upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 8px;
+  transform: translateY(8px) scale(0.95);
 }
 
 .pf-context-panel.visible {
@@ -149,9 +178,17 @@
   transition: width 0.3s ease, background 0.3s ease;
 }
 
-.pf-progress-fill.green { background: linear-gradient(90deg, #22c55e, #4ade80); }
-.pf-progress-fill.yellow { background: linear-gradient(90deg, #eab308, #facc15); }
-.pf-progress-fill.red { background: linear-gradient(90deg, #ef4444, #f87171); }
+.pf-progress-fill.green {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.pf-progress-fill.yellow {
+  background: linear-gradient(90deg, #eab308, #facc15);
+}
+
+.pf-progress-fill.red {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
 
 .pf-stat-row {
   display: flex;

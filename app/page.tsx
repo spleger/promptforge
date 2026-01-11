@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useCompletion } from 'ai/react';
 import Image from 'next/image';
 import { Navigation } from '@/components/navigation';
@@ -15,6 +15,27 @@ export default function Home() {
     targetModel: 'claude-sonnet-4-5-20250929', // Default to Sonnet 4.5
     enhancementLevel: 'standard',
   });
+
+  // Load user's default settings
+  useEffect(() => {
+    async function loadDefaults() {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.defaultModel || data.defaultLevel) {
+            setOptions(prev => ({
+              targetModel: data.defaultModel || prev.targetModel,
+              enhancementLevel: data.defaultLevel || prev.enhancementLevel,
+            }));
+          }
+        }
+      } catch (error) {
+        console.log('Using default settings');
+      }
+    }
+    loadDefaults();
+  }, []);
 
   // Ref for auto-scrolling
   const outputRef = useRef<HTMLDivElement>(null);

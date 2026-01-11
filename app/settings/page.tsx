@@ -210,10 +210,10 @@ export default function SettingsPage() {
                     <div className="bg-slate-800/50 rounded-xl p-6 mb-6 border border-slate-700">
                         <h2 className="text-xl font-semibold text-white mb-4">Extension Widget Sites</h2>
                         <p className="text-slate-400 text-sm mb-6">
-                            Choose which AI sites show the floating enhancement widget.
+                            Choose which sites show the floating enhancement widget. You can also add custom sites below.
                         </p>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                             {AI_SITES.map((site) => (
                                 <label
                                     key={site.id}
@@ -234,6 +234,71 @@ export default function SettingsPage() {
                                     <span className="text-white font-medium">{site.label}</span>
                                 </label>
                             ))}
+                        </div>
+
+                        {/* Custom Sites */}
+                        <div className="border-t border-slate-700 pt-4">
+                            <Label className="text-slate-300 font-medium mb-2 block">Custom Sites</Label>
+                            <p className="text-slate-500 text-xs mb-3">
+                                Add any website domain where you want the widget (e.g., perplexity.ai, poe.com)
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {settings.enabledSites
+                                    .filter(site => !AI_SITES.some(s => s.id === site))
+                                    .map((site) => (
+                                        <span
+                                            key={site}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 rounded-full text-sm text-white"
+                                        >
+                                            🌐 {site}
+                                            <button
+                                                onClick={() => toggleSite(site)}
+                                                className="text-slate-400 hover:text-red-400 transition-colors"
+                                            >
+                                                ✕
+                                            </button>
+                                        </span>
+                                    ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="domain.com"
+                                    id="customSiteInput"
+                                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const input = e.target as HTMLInputElement;
+                                            const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                                            if (domain && !settings.enabledSites.includes(domain)) {
+                                                setSettings(prev => ({
+                                                    ...prev,
+                                                    enabledSites: [...prev.enabledSites, domain]
+                                                }));
+                                                input.value = '';
+                                            }
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        const input = document.getElementById('customSiteInput') as HTMLInputElement;
+                                        const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                                        if (domain && !settings.enabledSites.includes(domain)) {
+                                            setSettings(prev => ({
+                                                ...prev,
+                                                enabledSites: [...prev.enabledSites, domain]
+                                            }));
+                                            input.value = '';
+                                        }
+                                    }}
+                                    className="border-slate-600"
+                                >
+                                    Add
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
