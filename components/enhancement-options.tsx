@@ -99,25 +99,24 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
               enhancementLevel: value as EnhancementOptions['enhancementLevel'],
             })
           }
-          className="grid grid-cols-1 xs:grid-cols-3 gap-2 sm:gap-3"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
         >
           <div>
             <Label
               htmlFor="light"
               className={`
-                flex items-center justify-between p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  options.enhancementLevel === 'light'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${options.enhancementLevel === 'light'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="light" id="light" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Light</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Basic fixes</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Light</div>
+                  <div className="text-xs text-slate-400">Basic fixes</div>
                 </div>
               </div>
             </Label>
@@ -127,19 +126,18 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
             <Label
               htmlFor="standard"
               className={`
-                flex items-center justify-between p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  options.enhancementLevel === 'standard'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${options.enhancementLevel === 'standard'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="standard" id="standard" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Standard</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Balanced</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Standard</div>
+                  <div className="text-xs text-slate-400">Balanced</div>
                 </div>
               </div>
             </Label>
@@ -149,19 +147,18 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
             <Label
               htmlFor="comprehensive"
               className={`
-                flex items-center justify-between p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  options.enhancementLevel === 'comprehensive'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${options.enhancementLevel === 'comprehensive'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="comprehensive" id="comprehensive" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Comprehensive</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Maximum</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Comprehensive</div>
+                  <div className="text-xs text-slate-400">Maximum</div>
                 </div>
               </div>
             </Label>
@@ -191,25 +188,24 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
         <RadioGroup
           value={modelFamily}
           onValueChange={handleFamilyChange}
-          className="grid grid-cols-1 xs:grid-cols-3 gap-2 sm:gap-3"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
         >
           <div>
             <Label
               htmlFor="opus"
               className={`
-                flex items-center justify-center p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  modelFamily === 'opus'
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${modelFamily === 'opus'
+                  ? 'border-purple-500 bg-purple-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="opus" id="opus" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Opus</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Most capable</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Opus</div>
+                  <div className="text-xs text-slate-400">Most capable</div>
                 </div>
               </div>
             </Label>
@@ -219,19 +215,18 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
             <Label
               htmlFor="sonnet"
               className={`
-                flex items-center justify-center p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  modelFamily === 'sonnet'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${modelFamily === 'sonnet'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="sonnet" id="sonnet" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Sonnet</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Balanced</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Sonnet</div>
+                  <div className="text-xs text-slate-400">Balanced</div>
                 </div>
               </div>
             </Label>
@@ -241,19 +236,18 @@ export function EnhancementOptionsComponent({ options, onChange }: EnhancementOp
             <Label
               htmlFor="haiku"
               className={`
-                flex items-center justify-center p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all
-                ${
-                  modelFamily === 'haiku'
-                    ? 'border-green-500 bg-green-500/10'
-                    : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
+                flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all
+                ${modelFamily === 'haiku'
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-slate-600 bg-slate-900/30 hover:border-slate-500'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full">
                 <RadioGroupItem value="haiku" id="haiku" />
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-white">Haiku</div>
-                  <div className="text-xs text-slate-400 hidden xs:block">Fast</div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">Haiku</div>
+                  <div className="text-xs text-slate-400">Fast</div>
                 </div>
               </div>
             </Label>
