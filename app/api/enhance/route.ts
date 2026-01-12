@@ -44,15 +44,18 @@ export async function POST(req: Request) {
     const userInput = userPrompt || input || '';
 
     // Map future/placeholder models to real available models
+    // Current valid models: claude-3-5-sonnet-20241022, claude-3-opus-20240229, claude-3-haiku-20240307
     const MODEL_MAPPING: Record<string, string> = {
       // Opus mapping
       'claude-opus-4-5-20251101': 'claude-3-opus-20240229',
       'claude-opus-4-1-20250805': 'claude-3-opus-20240229',
-      // Sonnet mapping
-      'claude-sonnet-4-5-20250929': 'claude-3-5-sonnet-20240620',
-      'claude-sonnet-4-20250515': 'claude-3-5-sonnet-20240620',
+      // Sonnet mapping - use claude-3-5-sonnet-20241022 (latest available)
+      'claude-sonnet-4-5-20250929': 'claude-3-5-sonnet-20241022',
+      'claude-sonnet-4-20250515': 'claude-3-5-sonnet-20241022',
+      'claude-3-5-sonnet-20240620': 'claude-3-5-sonnet-20241022', // Fix old date
       // Haiku mapping
       'claude-haiku-4-5-20251001': 'claude-3-haiku-20240307',
+      'claude-3-5-haiku-20241022': 'claude-3-haiku-20240307', // Map 3.5 haiku if not available
     };
 
     // Use the mapped model if it exists, otherwise use the requested model
@@ -114,14 +117,26 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse({ data });
   } catch (error) {
-    console.error('Enhancement error:', error);
+    console.error('Enhancement error details:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
 
     if (error instanceof Error) {
       // Handle specific error types
-      if (error.message.includes('API key')) {
+      if (error.message.includes('API key') || error.message.includes('authentication')) {
         return Response.json(
           { error: 'Authentication failed. Please check your API key.' },
           { status: 401 }
+        );
+      }
+
+      if (error.message.includes('model')) {
+        return Response.json(
+          { error: 'Invalid model specified', message: error.message },
+          { status: 400 }
         );
       }
 
