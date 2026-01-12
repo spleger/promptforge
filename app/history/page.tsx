@@ -164,12 +164,51 @@ export default function HistoryPage() {
                                             const isEdited = prompt.children && prompt.children.length > 0;
 
                                             const getContent = (p: Prompt) => {
-                                                const raw = p.enhancedOutput;
+                                                let raw = p.enhancedOutput;
                                                 try {
+                                                    // Handle Vercel AI SDK streaming format (0:"...", 0:"...", etc)
+                                                    if (raw.includes('0:"')) {
+                                                        // Remove the "0:" prefixes and reconstruct
+                                                        let cleaned = raw.replace(/^\d+:/gm, '');
+                                                        // Parse and concatenate the JSON string chunks
+                                                        const lines = cleaned.split('\n').filter(line => line.trim());
+                                                        let reconstructed = '';
+                                                        for (const line of lines) {
+                                                            if (line.startsWith('e:') || line.startsWith('d:')) continue;
+                                                            try {
+                                                                if (line.startsWith('"') && line.endsWith('"')) {
+                                                                    reconstructed += JSON.parse(line);
+                                                                } else {
+                                                                    reconstructed += line;
+                                                                }
+                                                            } catch {
+                                                                reconstructed += line;
+                                                            }
+                                                        }
+                                                        raw = reconstructed;
+                                                    }
+
+                                                    // Check for markdown code blocks
                                                     const match = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
                                                     const jsonStr = (match && match[1]) ? match[1] : raw;
-                                                    const parsed = JSON.parse(jsonStr);
-                                                    return parsed.enhanced_prompt || parsed.text || parsed.prompt || raw;
+
+                                                    // Try to parse as JSON
+                                                    let parsed;
+                                                    try {
+                                                        parsed = JSON.parse(jsonStr);
+                                                    } catch {
+                                                        // Try extracting JSON object from the string
+                                                        const firstOpen = jsonStr.indexOf('{');
+                                                        const lastClose = jsonStr.lastIndexOf('}');
+                                                        if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+                                                            parsed = JSON.parse(jsonStr.substring(firstOpen, lastClose + 1));
+                                                        }
+                                                    }
+
+                                                    if (parsed) {
+                                                        return parsed.enhanced_prompt || parsed.text || parsed.prompt || raw;
+                                                    }
+                                                    return raw;
                                                 } catch {
                                                     return raw;
                                                 }
