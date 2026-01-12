@@ -39,16 +39,6 @@ export function Navigation() {
                   <History className="h-4 w-4" />
                   <span className="hidden sm:inline">History</span>
                 </Link>
-                <Link
-                  href="/settings"
-                  className={`flex items-center space-x-1 text-sm font-medium transition-colors ${pathname === '/settings'
-                    ? 'text-blue-400'
-                    : 'text-slate-300 hover:text-white'
-                    }`}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden sm:inline">Settings</span>
-                </Link>
               </div>
             </SignedIn>
           </div>
@@ -86,7 +76,15 @@ export function Navigation() {
                       userButtonAvatarBox: "w-8 h-8"
                     }
                   }}
-                />
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="Settings"
+                      labelIcon={<Settings className="h-4 w-4" />}
+                      href="/settings"
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
               </SignedIn>
 
               {/* Mobile Menu Button */}

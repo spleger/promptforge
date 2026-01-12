@@ -102,6 +102,40 @@ let userSettings = null;
 let isEnhancing = false;
 
 /**
+ * Show a toast notification
+ */
+function showToast(message) {
+    // Remove existing toast
+    const existing = document.querySelector('.pf-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'pf-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 999999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: pf-toast-in 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'pf-toast-out 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+/**
  * Get current site configuration
  */
 function getSiteConfig() {
@@ -370,12 +404,15 @@ function closeContextPanel() {
 function updateContextDisplay() {
     if (!currentWidget) return;
 
+    // Skip for custom sites (they don't have context elements)
+    const dot = currentWidget.querySelector('.pf-context-dot');
+    if (!dot) return;
+
     const usage = getContextUsage();
     const percentage = Math.min((usage.total / usage.limit) * 100, 100);
     const color = getUsageColor(percentage);
 
     // Update indicator
-    const dot = currentWidget.querySelector('.pf-context-dot');
     const text = currentWidget.querySelector('.pf-context-text');
     dot.className = `pf-context-dot ${color}`;
     text.textContent = `${formatTokens(usage.total)}/${formatTokens(usage.limit)}`;
@@ -430,16 +467,24 @@ async function handleEnhanceClick(e) {
             });
         });
 
-        // Replace textarea content
-        setTextareaContent(currentTextarea, enhanced);
-        console.log('[PromptForge] Enhancement complete');
+        // Try to replace textarea content
+        const insertSuccess = setTextareaContent(currentTextarea, enhanced);
+
+        if (!insertSuccess) {
+            // DOM insertion failed (React site like Perplexity) - copy to clipboard
+            console.log('[PromptForge] DOM insertion failed, copying to clipboard');
+            await navigator.clipboard.writeText(enhanced);
+            showToast('✨ Enhanced! Paste with Ctrl+V');
+        } else {
+            console.log('[PromptForge] Enhancement complete');
+        }
 
         // Update context display
         setTimeout(updateContextDisplay, 500);
 
     } catch (error) {
         console.error('[PromptForge] Enhancement error:', error);
-        // Could show error toast here
+        showToast('❌ Enhancement failed');
     } finally {
         isEnhancing = false;
         btn.innerHTML = originalContent;
@@ -458,18 +503,84 @@ function getTextareaContent(el) {
 }
 
 /**
- * Set content in textarea (handles contenteditable)
+ * Set content in textarea (handles contenteditable and React-based inputs)
+ * Returns true if content was successfully set, false if React overwrote it
  */
 function setTextareaContent(el, content) {
+    console.log('[PromptForge] setTextareaContent called:', {
+        tagName: el.tagName,
+        contenteditable: el.getAttribute('contenteditable'),
+        contentLength: content?.length
+    });
+
     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
-        el.value = content;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
+        // For native textarea/input, use native value setter to bypass React
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
+            'value'
+        )?.set;
+
+        if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(el, content);
+        } else {
+            el.value = content;
+        }
+
+        // Dispatch InputEvent which React listens to
+        el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: content }));
+        console.log('[PromptForge] Set via native setter + InputEvent');
+
+        // Check if it stuck
+        const success = el.value === content;
+        console.log('[PromptForge] Input success:', success);
+        return success;
     } else {
-        // For contenteditable
+        // For contenteditable (React-based like Perplexity)
         el.focus();
-        document.execCommand('selectAll', false, null);
-        document.execCommand('insertText', false, content);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Try multiple strategies
+        let success = false;
+
+        // Strategy 1: execCommand (works on Claude, ChatGPT)
+        try {
+            document.execCommand('selectAll', false, null);
+            success = document.execCommand('insertText', false, content);
+            console.log('[PromptForge] execCommand result:', success);
+        } catch (e) {
+            console.log('[PromptForge] execCommand failed:', e);
+        }
+
+        // Strategy 2: Direct DOM manipulation with events (for React-based sites)
+        if (!success || el.textContent !== content) {
+            console.log('[PromptForge] Trying direct DOM manipulation');
+
+            // Clear and set content directly
+            el.textContent = '';
+            el.textContent = content;
+
+            // Dispatch events that React might listen to
+            el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: content }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+
+            // Also try triggering a blur/focus cycle to force React update
+            el.blur();
+            el.focus();
+        }
+
+        // Strategy 3: If still not working, try innerText
+        if (el.textContent !== content) {
+            console.log('[PromptForge] Trying innerText fallback');
+            el.innerText = content;
+            el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+        }
+
+        const finalLength = el.textContent?.length || 0;
+        const expectedLength = content?.length || 0;
+        // Consider it a success if we got at least 80% of the content in
+        const insertionSuccess = finalLength >= expectedLength * 0.8;
+
+        console.log('[PromptForge] Final content length:', finalLength, 'Expected:', expectedLength, 'Success:', insertionSuccess);
+        return insertionSuccess;
     }
 }
 

@@ -98,59 +98,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Add floating button when text is selected in input fields
-let floatingButton = null;
-
-document.addEventListener('mouseup', (e) => {
-  // Only show on input/textarea elements
-  const target = e.target;
-  if (target.tagName !== 'TEXTAREA' && target.tagName !== 'INPUT' && !target.isContentEditable) {
-    removeFloatingButton();
-    return;
-  }
-
-  const selectedText = window.getSelection().toString().trim();
-
-  if (selectedText && selectedText.length >= 3) {
-    showFloatingButton(e.clientX, e.clientY, selectedText);
-  } else {
-    removeFloatingButton();
-  }
-});
-
-// Show floating enhance button
-function showFloatingButton(x, y, text) {
-  removeFloatingButton();
-
-  floatingButton = document.createElement('div');
-  floatingButton.id = 'promptforge-floating-btn';
-  floatingButton.innerHTML = '✨ Enhance';
-  floatingButton.style.left = `${x}px`;
-  floatingButton.style.top = `${y + 20}px`;
-
-  floatingButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({
-      action: 'enhance',
-      text: text
-    });
-    removeFloatingButton();
-  });
-
-  document.body.appendChild(floatingButton);
-
-  // Remove on next click outside
-  setTimeout(() => {
-    document.addEventListener('click', removeFloatingButton, { once: true });
-  }, 100);
-}
-
-// Remove floating button
-function removeFloatingButton() {
-  if (floatingButton && floatingButton.parentNode) {
-    floatingButton.remove();
-    floatingButton = null;
-  }
-}
+// NOTE: Floating button on text selection removed - widget.js now handles all enhancement UI
 
 // Detect and enhance AI tool interfaces (ChatGPT, Claude.ai, etc.)
 function detectAITools() {

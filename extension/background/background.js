@@ -139,6 +139,9 @@ async function enhancePrompt(text, settings) {
   const model = settings?.defaultModel || 'claude-sonnet-4-5-20250929';
   const level = settings?.defaultLevel || 'standard';
 
+  console.log('[PromptForge] Starting enhancement:', { text: text.substring(0, 50), model, level });
+  console.log('[PromptForge] API URL:', API_URL);
+
   const response = await fetch(API_URL, {
     method: 'POST',
     credentials: 'include',
@@ -152,7 +155,11 @@ async function enhancePrompt(text, settings) {
     }),
   });
 
+  console.log('[PromptForge] Response status:', response.status, response.statusText);
+
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => 'Could not read body');
+    console.error('[PromptForge] Response not OK:', errorBody);
     throw new Error('Enhancement failed');
   }
 
@@ -167,10 +174,15 @@ async function enhancePrompt(text, settings) {
     fullResponse += decoder.decode(value);
   }
 
+  console.log('[PromptForge] Raw response (first 500 chars):', fullResponse.substring(0, 500));
+
   // Parse enhanced prompt
   const enhancedPrompt = parseEnhancedPrompt(fullResponse);
 
+  console.log('[PromptForge] Parsed result:', enhancedPrompt ? enhancedPrompt.substring(0, 100) + '...' : 'NULL');
+
   if (!enhancedPrompt) {
+    console.error('[PromptForge] Parse failed. Full response:', fullResponse);
     throw new Error('Could not parse enhanced prompt');
   }
 
