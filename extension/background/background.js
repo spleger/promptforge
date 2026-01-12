@@ -200,7 +200,7 @@ async function fetchUserSettings() {
   return {
     defaultModel: stored.defaultModel || 'claude-sonnet-4-5-20250929',
     defaultLevel: stored.defaultLevel || 'standard',
-    enabledSites: ['chatgpt.com', 'claude.ai', 'gemini.google.com', 'notebooklm.google.com'],
+    enabledSites: ['chatgpt.com', 'claude.ai', 'gemini.google.com', 'notebooklm.google.com', 'perplexity.ai'],
   };
 }
 

@@ -17,13 +17,17 @@ const copyReviewsBtn = document.getElementById('copyReviewsBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const historyLink = document.getElementById('historyLink');
 
-// Load saved settings
-chrome.storage.sync.get(['defaultModel', 'defaultLevel'], (result) => {
-  if (result.defaultModel) {
-    modelSelect.value = result.defaultModel;
+// Load saved settings from background (API-first)
+chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
+  if (chrome.runtime.lastError) {
+    console.warn('Could not load settings:', chrome.runtime.lastError);
+    return;
   }
-  if (result.defaultLevel) {
-    levelSelect.value = result.defaultLevel;
+  if (settings?.defaultModel) {
+    modelSelect.value = settings.defaultModel;
+  }
+  if (settings?.defaultLevel) {
+    levelSelect.value = settings.defaultLevel;
   }
 });
 

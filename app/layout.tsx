@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: "Transform your casual descriptions into optimized, effective AI prompts using advanced prompt engineering techniques.",
   keywords: ["prompt engineering", "AI", "ChatGPT", "Claude", "prompt optimization"],
   authors: [{ name: "PromptForge" }],
+  icons: {
+    icon: '/icon.png',
+  },
   openGraph: {
     title: "PromptForge - Transform Ideas into Powerful AI Prompts",
     description: "Transform your casual descriptions into optimized, effective AI prompts",

@@ -43,6 +43,21 @@ export async function POST(req: Request) {
     // Use prompt field if available, otherwise fall back to input
     const userInput = userPrompt || input || '';
 
+    // Map future/placeholder models to real available models
+    const MODEL_MAPPING: Record<string, string> = {
+      // Opus mapping
+      'claude-opus-4-5-20251101': 'claude-3-opus-20240229',
+      'claude-opus-4-1-20250805': 'claude-3-opus-20240229',
+      // Sonnet mapping
+      'claude-sonnet-4-5-20250929': 'claude-3-5-sonnet-20240620',
+      'claude-sonnet-4-20250515': 'claude-3-5-sonnet-20240620',
+      // Haiku mapping
+      'claude-haiku-4-5-20251001': 'claude-3-haiku-20240307',
+    };
+
+    // Use the mapped model if it exists, otherwise use the requested model
+    const actualModel = MODEL_MAPPING[targetModel] || targetModel;
+
     // Check for API key
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -56,7 +71,7 @@ export async function POST(req: Request) {
     // Replace placeholders in the meta-prompt
     const prompt = META_PROMPT
       .replace('{{USER_INPUT}}', userInput)
-      .replace('{{TARGET_MODEL}}', targetModel)
+      .replace('{{TARGET_MODEL}}', targetModel) // Keep user's target model name in prompt for context
       .replace('{{ENHANCEMENT_LEVEL}}', ENHANCEMENT_LEVELS[enhancementLevel]);
 
     // Create a StreamData object to send additional data
@@ -64,7 +79,7 @@ export async function POST(req: Request) {
 
     // Use the model ID directly
     const result = await streamText({
-      model: anthropic(targetModel),
+      model: anthropic(actualModel),
       prompt,
       maxTokens: 2500,
       temperature: 0.7,
