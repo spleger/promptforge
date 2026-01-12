@@ -43,19 +43,17 @@ export async function POST(req: Request) {
     // Use prompt field if available, otherwise fall back to input
     const userInput = userPrompt || input || '';
 
-    // Map future/placeholder models to real available models
-    // Current valid models: claude-3-5-sonnet-20241022, claude-3-opus-20240229, claude-3-haiku-20240307
+    // Map deprecated Claude 3 models to current Claude 4 models (as of 2026)
+    // Claude 4 models (claude-sonnet-4-5-20250929, claude-opus-4-5-20251101, etc.) are the current valid models
+    // Claude 3 models are deprecated/retired
     const MODEL_MAPPING: Record<string, string> = {
-      // Opus mapping
-      'claude-opus-4-5-20251101': 'claude-3-opus-20240229',
-      'claude-opus-4-1-20250805': 'claude-3-opus-20240229',
-      // Sonnet mapping - use claude-3-5-sonnet-20241022 (latest available)
-      'claude-sonnet-4-5-20250929': 'claude-3-5-sonnet-20241022',
-      'claude-sonnet-4-20250515': 'claude-3-5-sonnet-20241022',
-      'claude-3-5-sonnet-20240620': 'claude-3-5-sonnet-20241022', // Fix old date
-      // Haiku mapping
-      'claude-haiku-4-5-20251001': 'claude-3-haiku-20240307',
-      'claude-3-5-haiku-20241022': 'claude-3-haiku-20240307', // Map 3.5 haiku if not available
+      // Map any old Claude 3 references to Claude 4 equivalents
+      'claude-3-opus-20240229': 'claude-opus-4-5-20251101',
+      'claude-3-sonnet-20240229': 'claude-sonnet-4-5-20250929',
+      'claude-3-5-sonnet-20240620': 'claude-sonnet-4-5-20250929',
+      'claude-3-5-sonnet-20241022': 'claude-sonnet-4-5-20250929',
+      'claude-3-haiku-20240307': 'claude-haiku-4-5-20251001',
+      'claude-3-5-haiku-20241022': 'claude-haiku-4-5-20251001',
     };
 
     // Use the mapped model if it exists, otherwise use the requested model
