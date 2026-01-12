@@ -52,11 +52,13 @@ Apply these techniques as appropriate:
 ## QUALITY STANDARDS
 
 Your enhanced prompt MUST:
-- Be immediately usable(no placeholders unless necessary)
-  - Be more specific than the input without changing intent
-    - Include output format guidance
-      - Be appropriately sized(not bloated, not sparse)
-        - Sound natural, not robotic
+- Be immediately usable (no placeholders unless necessary)
+- Be more specific than the input without changing intent
+- Include output format guidance
+- Be appropriately sized (not bloated, not sparse)
+- Sound natural, not robotic
+- **Use clear formatting**: Include line breaks between sections, use markdown-style formatting (headers, bullet points) where appropriate to improve readability
+- **Structure complex prompts**: For multi-step tasks, use numbered lists or clear section headers
 
 ## EXAMPLES
 
