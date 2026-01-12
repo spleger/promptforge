@@ -4,11 +4,10 @@ import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// Default settings for new users
 const DEFAULT_SETTINGS = {
     defaultModel: 'claude-sonnet-4-5-20250929',
     defaultLevel: 'standard',
-    enabledSites: ['chatgpt.com', 'claude.ai', 'gemini.google.com', 'notebooklm.google.com'],
+    enabledSites: ['chatgpt.com', 'claude.ai', 'gemini.google.com', 'notebooklm.google.com', 'perplexity.ai'],
 };
 
 // GET: Retrieve user's settings

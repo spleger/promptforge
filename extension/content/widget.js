@@ -80,6 +80,14 @@ const SITE_CONFIGS = {
         modelMap: {
             'notebooklm': 1000000,
         }
+    },
+    'perplexity.ai': {
+        textareaSelector: 'textarea, [contenteditable], .overflow-auto > div[contenteditable]',
+        messageSelector: null,
+        modelSelector: null,
+        defaultModel: 'Perplexity',
+        defaultContext: null,
+        modelMap: {}
     }
 };
 

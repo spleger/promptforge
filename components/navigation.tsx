@@ -79,8 +79,13 @@ export function Navigation() {
                 >
                   <UserButton.MenuItems>
                     <UserButton.Link
+                      label="History"
+                      labelIcon={<History className="w-4 h-4" />}
+                      href="/history"
+                    />
+                    <UserButton.Link
                       label="Settings"
-                      labelIcon={<Settings className="h-4 w-4" />}
+                      labelIcon={<Settings className="w-4 h-4" />}
                       href="/settings"
                     />
                   </UserButton.MenuItems>
