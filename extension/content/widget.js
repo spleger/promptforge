@@ -449,7 +449,21 @@ async function handleEnhanceClick(e) {
     const text = getTextareaContent(currentTextarea);
     if (!text || text.trim().length < 3) {
         console.log('[PromptForge] Text too short to enhance');
+        showToast('⚠️ Text too short (min 3 characters)');
         return;
+    }
+
+    // Safety check: ensure settings are loaded
+    if (!userSettings) {
+        console.log('[PromptForge] Settings not loaded, attempting to load...');
+        showToast('⏳ Loading settings...');
+        await loadUserSettings();
+
+        if (!userSettings) {
+            console.error('[PromptForge] Could not load settings');
+            showToast('❌ Could not load settings. Try refreshing the page.');
+            return;
+        }
     }
 
     isEnhancing = true;
@@ -482,9 +496,10 @@ async function handleEnhanceClick(e) {
             // DOM insertion failed (React site like Perplexity) - copy to clipboard
             console.log('[PromptForge] DOM insertion failed, copying to clipboard');
             await navigator.clipboard.writeText(enhanced);
-            showToast('✨ Enhanced! Paste with Ctrl+V');
+            showToast('✨ Enhanced! (Copied to clipboard - Ctrl+V to paste)', 4000);
         } else {
             console.log('[PromptForge] Enhancement complete');
+            showToast('✨ Enhanced!');
         }
 
         // Update context display
@@ -492,7 +507,21 @@ async function handleEnhanceClick(e) {
 
     } catch (error) {
         console.error('[PromptForge] Enhancement error:', error);
-        showToast('❌ Enhancement failed');
+
+        // Parse error type and show specific message
+        const errorMsg = error.message || 'Unknown error';
+
+        if (errorMsg.includes('AUTH_ERROR')) {
+            showToast('🔐 Please sign in at promptforge.one', 5000);
+        } else if (errorMsg.includes('NETWORK_ERROR')) {
+            showToast('🌐 Network error. Check your connection.', 4000);
+        } else if (errorMsg.includes('PARSE_ERROR')) {
+            showToast('⚠️ Invalid response from server', 4000);
+        } else if (errorMsg.includes('SERVER_ERROR')) {
+            showToast('⚠️ Server error. Try again later.', 4000);
+        } else {
+            showToast(`❌ ${errorMsg}`, 4000);
+        }
     } finally {
         isEnhancing = false;
         btn.innerHTML = originalContent;
@@ -685,6 +714,18 @@ function hideWidget() {
 async function init() {
     console.log('[PromptForge] Starting initialization...');
 
+    // Check if widget is globally enabled
+    const widgetSettings = await new Promise((resolve) => {
+        chrome.storage.sync.get(['widgetEnabled'], (result) => {
+            resolve(result);
+        });
+    });
+
+    if (widgetSettings.widgetEnabled === false) {
+        console.log('[PromptForge] Widget is disabled by user setting');
+        return;
+    }
+
     // Load user settings first (needed to check custom sites)
     await loadUserSettings();
 
@@ -747,6 +788,23 @@ async function init() {
         if (currentTextarea) positionWidget(currentTextarea);
     });
 }
+
+// Listen for toggle changes from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'widgetToggleChanged') {
+        console.log('[PromptForge] Widget toggle changed:', request.enabled);
+
+        if (!request.enabled) {
+            // Disable: hide and remove widget
+            hideWidget();
+            console.log('[PromptForge] Widget disabled');
+        } else {
+            // Enable: reinitialize (page refresh recommended but we try)
+            console.log('[PromptForge] Widget enabled');
+            location.reload(); // Reload to properly reinitialize
+        }
+    }
+});
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {

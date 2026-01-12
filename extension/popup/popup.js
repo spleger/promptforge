@@ -16,6 +16,7 @@ const copyPromptBtn = document.getElementById('copyPromptBtn');
 const copyReviewsBtn = document.getElementById('copyReviewsBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const historyLink = document.getElementById('historyLink');
+const widgetToggle = document.getElementById('widgetToggle');
 
 // Load saved settings from background (API-first)
 chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
@@ -29,6 +30,29 @@ chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
   if (settings?.defaultLevel) {
     levelSelect.value = settings.defaultLevel;
   }
+});
+
+// Load widget enabled state from sync storage
+chrome.storage.sync.get(['widgetEnabled'], (result) => {
+  // Default to enabled if not set
+  widgetToggle.checked = result.widgetEnabled !== false;
+});
+
+// Save widget enabled state when changed
+widgetToggle.addEventListener('change', () => {
+  chrome.storage.sync.set({ widgetEnabled: widgetToggle.checked }, () => {
+    console.log('Widget enabled state saved:', widgetToggle.checked);
+
+    // Notify all tabs to reload widget state
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'widgetToggleChanged',
+          enabled: widgetToggle.checked
+        }).catch(() => { }); // Ignore errors for tabs without content script
+      });
+    });
+  });
 });
 
 // Check if there's selected text on the page

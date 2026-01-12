@@ -142,54 +142,71 @@ async function enhancePrompt(text, settings) {
   console.log('[PromptForge] Starting enhancement:', { text: text.substring(0, 50), model, level });
   console.log('[PromptForge] API URL:', API_URL);
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      input: text,
-      targetModel: model,
-      enhancementLevel: level,
-    }),
-  });
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: text,
+        targetModel: model,
+        enhancementLevel: level,
+      }),
+    });
 
-  console.log('[PromptForge] Response status:', response.status, response.statusText);
+    console.log('[PromptForge] Response status:', response.status, response.statusText);
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => 'Could not read body');
-    console.error('[PromptForge] Response not OK:', errorBody);
-    throw new Error('Enhancement failed');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read body');
+      console.error('[PromptForge] Response not OK:', errorBody);
+
+      // Return specific error types
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('AUTH_ERROR: Please sign in at promptforge.one');
+      } else if (response.status >= 500) {
+        throw new Error('SERVER_ERROR: Server error occurred');
+      } else {
+        throw new Error(`API_ERROR: ${response.statusText}`);
+      }
+    }
+
+    // Read streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      fullResponse += decoder.decode(value);
+    }
+
+    console.log('[PromptForge] Raw response (first 500 chars):', fullResponse.substring(0, 500));
+
+    // Parse enhanced prompt
+    const enhancedPrompt = parseEnhancedPrompt(fullResponse);
+
+    console.log('[PromptForge] Parsed result:', enhancedPrompt ? enhancedPrompt.substring(0, 100) + '...' : 'NULL');
+
+    if (!enhancedPrompt) {
+      console.error('[PromptForge] Parse failed. Full response:', fullResponse);
+      throw new Error('PARSE_ERROR: Could not parse enhanced prompt from response');
+    }
+
+    // Save to history
+    saveToHistory(text, enhancedPrompt, model, level);
+
+    return enhancedPrompt;
+  } catch (error) {
+    // Network/fetch errors
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('NETWORK_ERROR: Check your internet connection');
+    }
+    // Re-throw our structured errors
+    throw error;
   }
-
-  // Read streaming response
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let fullResponse = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    fullResponse += decoder.decode(value);
-  }
-
-  console.log('[PromptForge] Raw response (first 500 chars):', fullResponse.substring(0, 500));
-
-  // Parse enhanced prompt
-  const enhancedPrompt = parseEnhancedPrompt(fullResponse);
-
-  console.log('[PromptForge] Parsed result:', enhancedPrompt ? enhancedPrompt.substring(0, 100) + '...' : 'NULL');
-
-  if (!enhancedPrompt) {
-    console.error('[PromptForge] Parse failed. Full response:', fullResponse);
-    throw new Error('Could not parse enhanced prompt');
-  }
-
-  // Save to history
-  saveToHistory(text, enhancedPrompt, model, level);
-
-  return enhancedPrompt;
 }
 
 // Fetch user settings from API
