@@ -2,6 +2,46 @@
 const API_BASE = 'https://promptforge.one';
 const API_URL = `${API_BASE}/api/enhance`;
 const SETTINGS_URL = `${API_BASE}/api/settings`;
+const TOKEN_URL = `${API_BASE}/api/auth/token`;
+
+// Token cache
+let cachedToken = null;
+let tokenExpiry = 0;
+
+/**
+ * Get a valid auth token, fetching a new one if needed.
+ * Returns null if user is not logged in.
+ */
+async function getAuthToken() {
+  // Return cached token if still valid (with 5 min buffer)
+  if (cachedToken && Date.now() < tokenExpiry - 5 * 60 * 1000) {
+    return cachedToken;
+  }
+
+  try {
+    // Fetch new token from web app (uses cookies)
+    const response = await fetch(TOKEN_URL, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      console.log('[PromptForge] User not authenticated, token fetch failed');
+      cachedToken = null;
+      tokenExpiry = 0;
+      return null;
+    }
+
+    const data = await response.json();
+    cachedToken = data.token;
+    tokenExpiry = Date.now() + (data.expiresIn * 1000);
+    console.log('[PromptForge] Token fetched successfully');
+    return cachedToken;
+  } catch (error) {
+    console.error('[PromptForge] Token fetch error:', error);
+    return null;
+  }
+}
 
 // Context menu creation
 chrome.runtime.onInstalled.addListener(() => {
@@ -143,12 +183,25 @@ async function enhancePrompt(text, settings) {
   console.log('[PromptForge] API URL:', API_URL);
 
   try {
+    // Get auth token for cross-browser support (Firefox/Opera block third-party cookies)
+    const token = await getAuthToken();
+
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Authorization header if we have a token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('[PromptForge] Using token auth');
+    } else {
+      console.log('[PromptForge] No token, falling back to cookies');
+    }
+
     const response = await fetch(API_URL, {
       method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      credentials: 'include', // Still include cookies as fallback
+      headers,
       body: JSON.stringify({
         input: text,
         targetModel: model,
@@ -236,69 +289,100 @@ async function fetchUserSettings() {
 // Parse enhanced prompt from response
 function parseEnhancedPrompt(response) {
   try {
-    let cleanedResponse = response;
+    console.log('[PromptForge] Starting parse of response length:', response.length);
 
-    // Handle Vercel AI SDK streaming format
-    cleanedResponse = cleanedResponse.replace(/^\d+:/gm, '');
-
-    // Handle quoted chunks
-    const lines = cleanedResponse.split('\n').filter(line => line.trim());
-    let reconstructed = '';
+    // Step 1: Remove Vercel AI SDK streaming format prefixes (0:, e:, d:)
+    // and extract just the content
+    let content = '';
+    const lines = response.split('\n');
 
     for (const line of lines) {
-      // Skip metadata lines
-      if (line.startsWith('e:') || line.startsWith('d:')) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // Skip metadata lines (e: for events, d: for data)
+      if (trimmed.startsWith('e:') || trimmed.startsWith('d:')) {
         continue;
       }
 
-      // Try to parse as JSON string
-      try {
-        if (line.startsWith('"') && line.endsWith('"')) {
-          const parsed = JSON.parse(line);
-          reconstructed += parsed;
-        } else {
-          reconstructed += line;
+      // Handle streaming chunks like 0:"content"
+      const chunkMatch = trimmed.match(/^\d+:(.+)$/);
+      if (chunkMatch) {
+        let chunk = chunkMatch[1];
+        // Try to parse as JSON string (handles escaped characters)
+        try {
+          if (chunk.startsWith('"') && chunk.endsWith('"')) {
+            chunk = JSON.parse(chunk);
+          }
+        } catch (e) {
+          // Not valid JSON string, use as-is but remove quotes
+          if (chunk.startsWith('"') && chunk.endsWith('"')) {
+            chunk = chunk.slice(1, -1);
+          }
         }
-      } catch (e) {
-        reconstructed += line;
+        content += chunk;
+      } else {
+        content += trimmed;
       }
     }
 
-    // Check for markdown code blocks
-    const markdownMatch = reconstructed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (markdownMatch && markdownMatch[1]) {
-      reconstructed = markdownMatch[1];
+    console.log('[PromptForge] Reconstructed content (first 500 chars):', content.substring(0, 500));
+
+    // Step 2: Remove markdown code blocks if present
+    // Handle ```json ... ``` or just ``` ... ```
+    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      content = codeBlockMatch[1].trim();
+      console.log('[PromptForge] Extracted from code block');
     }
 
-    // Try to parse the reconstructed JSON
+    // Step 3: Find the complete JSON object using balanced brace matching
+    const firstBrace = content.indexOf('{');
+    if (firstBrace === -1) {
+      console.error('[PromptForge] No JSON object found');
+      return null;
+    }
+
+    // Find the matching closing brace (balanced)
+    let braceCount = 0;
+    let endIndex = -1;
+    for (let i = firstBrace; i < content.length; i++) {
+      if (content[i] === '{') braceCount++;
+      if (content[i] === '}') braceCount--;
+      if (braceCount === 0) {
+        endIndex = i;
+        break;
+      }
+    }
+
+    if (endIndex === -1) {
+      console.error('[PromptForge] Unbalanced braces in JSON');
+      return null;
+    }
+
+    const jsonString = content.substring(firstBrace, endIndex + 1);
+    console.log('[PromptForge] Extracted balanced JSON, length:', jsonString.length);
+
+    // Step 4: Parse JSON
+    let data;
     try {
-      const data = JSON.parse(reconstructed);
-      if (data.enhanced_prompt) {
-        return data.enhanced_prompt;
-      }
+      data = JSON.parse(jsonString);
     } catch (e) {
-      // Continue with other methods
+      console.error('[PromptForge] JSON parse error:', e.message);
+      return null;
     }
 
-    // Try to extract JSON object { ... }
-    try {
-      const firstOpen = reconstructed.indexOf('{');
-      const lastClose = reconstructed.lastIndexOf('}');
-
-      if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
-        const jsonString = reconstructed.substring(firstOpen, lastClose + 1);
-        const data = JSON.parse(jsonString);
-        if (data.enhanced_prompt) {
-          return data.enhanced_prompt;
-        }
-      }
-    } catch (e) {
-      // Continue
+    // Step 4: Extract enhanced_prompt
+    if (data && data.enhanced_prompt) {
+      console.log('[PromptForge] Successfully extracted enhanced_prompt');
+      return data.enhanced_prompt;
     }
 
+    console.error('[PromptForge] No enhanced_prompt field in parsed data');
     return null;
+
   } catch (error) {
-    console.error('Parse error:', error);
+    console.error('[PromptForge] Parse error:', error);
     return null;
   }
 }

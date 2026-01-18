@@ -14,14 +14,41 @@ const RequestSchema = z.object({
 });
 
 import { auth } from '@clerk/nextjs/server';
+import { verifyToken } from '@clerk/backend';
 import prisma from '@/lib/prisma';
 
 export const runtime = 'nodejs'; // Prisma requires Node.js runtime
 export const dynamic = 'force-dynamic';
 
+/**
+ * Get userId from either:
+ * 1. Authorization header (Bearer token) - for extension/cross-browser
+ * 2. Cookies via auth() - for web app
+ */
+async function getUserId(req: Request): Promise<string | null> {
+  // First try Authorization header (for extension)
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    try {
+      const payload = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      return payload.sub || null;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      // Fall through to cookie-based auth
+    }
+  }
+
+  // Fall back to cookie-based auth
+  const { userId } = await auth();
+  return userId;
+}
+
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserId(req);
     const body = await req.json();
     const validationResult = RequestSchema.safeParse(body);
 
