@@ -294,14 +294,35 @@ function parseEnhancedPrompt(response) {
     // Step 1: Remove Vercel AI SDK streaming format prefixes (0:, e:, d:)
     // and extract just the content
     let content = '';
+    let foundPromptId = null;
     const lines = response.split('\n');
 
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
 
-      // Skip metadata lines (e: for events, d: for data)
-      if (trimmed.startsWith('e:') || trimmed.startsWith('d:')) {
+      // Check for data lines (d:) which contain promptId
+      if (trimmed.startsWith('d:')) {
+        try {
+          const dataStr = trimmed.substring(2);
+          // Vercel AI SDK often sends data as d:{"promptId":"..."} or d:[{"promptId":"..."}]
+          // Parse it safely
+          const data = JSON.parse(dataStr);
+          // Check for promptId in various formats (object or array)
+          if (data.promptId) {
+            foundPromptId = data.promptId;
+          } else if (Array.isArray(data)) {
+            const item = data.find(i => i && i.promptId);
+            if (item) foundPromptId = item.promptId;
+          }
+        } catch (e) {
+          console.log('[PromptForge] Failed to parse data line:', e);
+        }
+        continue;
+      }
+
+      // Skip event lines
+      if (trimmed.startsWith('e:')) {
         continue;
       }
 
@@ -377,7 +398,8 @@ function parseEnhancedPrompt(response) {
       console.log('[PromptForge] Successfully extracted enhanced_prompt');
       return {
         enhanced: data.enhanced_prompt,
-        improvementPlan: data.improvement_plan || null
+        improvementPlan: data.improvement_plan || null,
+        promptId: foundPromptId
       };
     }
 
@@ -425,7 +447,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({
           success: true,
           enhanced: result.enhanced,
-          improvementPlan: result.improvementPlan
+          improvementPlan: result.improvementPlan,
+          promptId: result.promptId
         });
       })
       .catch(error => {

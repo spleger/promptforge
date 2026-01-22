@@ -509,7 +509,7 @@ async function handleEnhanceClick(e) {
     btn.classList.add('loading');
 
     try {
-        const { enhanced, improvementPlan } = await new Promise((resolve, reject) => {
+        const { enhanced, improvementPlan, promptId } = await new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
                 action: 'enhance',
                 text: text,
@@ -553,8 +553,12 @@ async function handleEnhanceClick(e) {
                 // Set summary text
                 ideaSummary.textContent = improvementPlan.summary || 'Click to see improvement suggestions';
 
-                // Set link (generic history link for now, could be specific if ID returned)
-                // Note: ID handling would require updating background.js to return prompt ID
+                // Set link
+                if (promptId) {
+                    ideaLink.href = `https://promptforge.one/history?highlight=${promptId}`;
+                } else {
+                    ideaLink.href = 'https://promptforge.one/history';
+                }
 
                 // Show section
                 ideaSection.classList.remove('hidden');
@@ -720,7 +724,7 @@ function positionWidget(textarea) {
     // Panel should open upward if there's not enough space below for the panel
     const openUpward = spaceBelowWidget < panelHeight;
 
-    // Set panel direction class
+    // Set panel direction class for context panel
     const panel = currentWidget.querySelector('.pf-context-panel');
     if (panel) {
         if (openUpward) {
@@ -729,6 +733,18 @@ function positionWidget(textarea) {
         } else {
             panel.classList.remove('open-upward');
             panel.classList.add('open-downward');
+        }
+    }
+
+    // Set panel direction class for idea panel
+    const ideaPanel = currentWidget.querySelector('.pf-idea-panel');
+    if (ideaPanel) {
+        if (openUpward) {
+            ideaPanel.classList.add('open-upward');
+            ideaPanel.classList.remove('open-downward');
+        } else {
+            ideaPanel.classList.remove('open-upward');
+            ideaPanel.classList.add('open-downward');
         }
     }
 }

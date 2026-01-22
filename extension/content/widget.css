@@ -155,6 +155,25 @@
   display: none;
 }
 
+/* Default: open downward */
+.pf-idea-panel,
+.pf-idea-panel.open-downward {
+  top: 100%;
+  bottom: auto;
+  margin-top: 8px;
+  margin-bottom: 0;
+  transform: translateY(-8px);
+}
+
+/* Open upward when near bottom of screen */
+.pf-idea-panel.open-upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 8px;
+  transform: translateY(8px);
+}
+
 .pf-idea-summary {
   font-size: 11px;
   color: #e2e8f0;
