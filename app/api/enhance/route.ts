@@ -117,13 +117,37 @@ export async function POST(req: Request) {
             // Extract the JSON content from the completion for storage
             const enhancedOutput = completion.text;
 
+            // Try to parse improvement_plan from the model response
+            let improvementPlan = null;
+            try {
+              // Handle potential streaming format artifacts
+              let cleanedOutput = enhancedOutput;
+              // Remove Vercel AI SDK streaming prefixes if present
+              cleanedOutput = cleanedOutput.replace(/^\d+:/gm, '');
+              // Try to find and parse JSON
+              const firstOpen = cleanedOutput.indexOf('{');
+              const lastClose = cleanedOutput.lastIndexOf('}');
+              if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+                const jsonStr = cleanedOutput.substring(firstOpen, lastClose + 1);
+                const parsed = JSON.parse(jsonStr);
+                if (parsed.improvement_plan) {
+                  improvementPlan = parsed.improvement_plan;
+                }
+              }
+            } catch (parseError) {
+              console.warn('Could not parse improvement_plan from response:', parseError);
+            }
+
             const savedPrompt = await prisma.prompt.create({
               data: {
                 userId,
                 originalInput: userInput,
                 enhancedOutput: enhancedOutput, // Stores the full JSON string response
                 modelUsed: targetModel,
-                enhancement: JSON.stringify({ level: enhancementLevel }), // Store metadata
+                enhancement: JSON.stringify({
+                  level: enhancementLevel,
+                  ...(improvementPlan && { improvement_plan: improvementPlan })
+                }),
               }
             });
 

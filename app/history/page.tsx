@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Navigation } from '@/components/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
-import { Loader2, Calendar, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2, Calendar, Copy, Check, ChevronDown, ChevronRight, Lightbulb } from 'lucide-react';
 import { Prompt } from '@prisma/client';
 
 // Define extended type for Prompt with relations
 type HistoryItem = Prompt & { children?: Prompt[] };
 
-export default function HistoryPage() {
+function HistoryContent() {
     const { isLoaded, userId } = useAuth();
     const router = useRouter();
     const [prompts, setPrompts] = useState<HistoryItem[]>([]);
@@ -25,6 +25,30 @@ export default function HistoryPage() {
     // Grouping state
     const [groups, setGroups] = useState<Record<string, HistoryItem[]>>({});
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+    // Improvement expansion state
+    const [expandedImprovements, setExpandedImprovements] = useState<Record<string, boolean>>({});
+
+    // URL params for highlighting
+    const searchParams = useSearchParams();
+    const highlightId = searchParams.get('highlight');
+
+    // Auto-expand improvements for highlighted item
+    useEffect(() => {
+        if (highlightId && prompts.length > 0) {
+            setExpandedImprovements(prev => ({
+                ...prev,
+                [highlightId]: true
+            }));
+            // Scroll to the highlighted item
+            setTimeout(() => {
+                const element = document.getElementById(`prompt-${highlightId}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+    }, [highlightId, prompts]);
 
     useEffect(() => {
         if (isLoaded && !userId) {
@@ -114,6 +138,23 @@ export default function HistoryPage() {
         navigator.clipboard.writeText(text);
         setCopiedState({ id, type });
         setTimeout(() => setCopiedState(null), 2000);
+    };
+
+    const toggleImprovements = (id: string) => {
+        setExpandedImprovements(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
+
+    // Helper to get improvement_plan from enhancement field
+    const getImprovementPlan = (enhancement: string) => {
+        try {
+            const enhData = typeof enhancement === 'string' ? JSON.parse(enhancement) : enhancement;
+            return enhData?.improvement_plan || null;
+        } catch {
+            return null;
+        }
     };
 
     if (!isLoaded || isLoading) {
@@ -217,7 +258,7 @@ export default function HistoryPage() {
                                             const displayContent = getContent(latestVersion);
 
                                             return (
-                                                <div key={prompt.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-blue-500/30 transition-colors">
+                                                <div key={prompt.id} id={`prompt-${prompt.id}`} className={`bg-slate-800/50 rounded-xl p-6 border transition-colors ${highlightId === prompt.id ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-700 hover:border-blue-500/30'}`}>
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="flex items-center text-slate-400 text-sm">
                                                             <Calendar className="w-4 h-4 mr-2" />
@@ -306,6 +347,64 @@ export default function HistoryPage() {
                                                             </span>
                                                         </div>
                                                     )}
+
+                                                    {/* Improvement Plan Section */}
+                                                    {(() => {
+                                                        const improvementPlan = getImprovementPlan(prompt.enhancement);
+                                                        if (!improvementPlan) return null;
+
+                                                        const criticality = improvementPlan.criticality || 'moderate';
+                                                        const criticalityColors: Record<string, string> = {
+                                                            minor: 'text-green-400 border-green-500/30 bg-green-500/10',
+                                                            moderate: 'text-orange-400 border-orange-500/30 bg-orange-500/10',
+                                                            critical: 'text-red-400 border-red-500/30 bg-red-500/10'
+                                                        };
+                                                        const iconColors: Record<string, string> = {
+                                                            minor: 'text-green-400',
+                                                            moderate: 'text-orange-400',
+                                                            critical: 'text-red-400'
+                                                        };
+
+                                                        return (
+                                                            <div className="mt-4 border-t border-slate-700 pt-4">
+                                                                <button
+                                                                    onClick={() => toggleImprovements(prompt.id)}
+                                                                    className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg border transition-colors ${criticalityColors[criticality] || criticalityColors.moderate}`}
+                                                                >
+                                                                    <Lightbulb className={`w-5 h-5 ${iconColors[criticality] || iconColors.moderate}`} />
+                                                                    <span className="flex-1 text-sm font-medium">
+                                                                        {improvementPlan.summary || '3 Ways to Improve This Prompt'}
+                                                                    </span>
+                                                                    {expandedImprovements[prompt.id] ? (
+                                                                        <ChevronDown className="w-4 h-4" />
+                                                                    ) : (
+                                                                        <ChevronRight className="w-4 h-4" />
+                                                                    )}
+                                                                </button>
+
+                                                                {expandedImprovements[prompt.id] && improvementPlan.items && (
+                                                                    <div className="mt-3 space-y-3">
+                                                                        {improvementPlan.items.map((item: { title: string; description: string; example_change?: string }, idx: number) => (
+                                                                            <div key={idx} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                                                                                <h4 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+                                                                                    <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center justify-center font-bold">
+                                                                                        {idx + 1}
+                                                                                    </span>
+                                                                                    {item.title}
+                                                                                </h4>
+                                                                                <p className="text-sm text-slate-400 mb-2">{item.description}</p>
+                                                                                {item.example_change && item.example_change !== 'N/A - requires user-specific info' && (
+                                                                                    <div className="bg-slate-800 rounded p-2 text-xs font-mono text-slate-300 whitespace-pre-wrap">
+                                                                                        {item.example_change}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             );
                                         })}
@@ -336,5 +435,21 @@ export default function HistoryPage() {
                 )}
             </main>
         </div>
+    );
+}
+
+// Wrapper component with Suspense boundary for useSearchParams
+export default function HistoryPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+                <Navigation />
+                <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                </div>
+            </div>
+        }>
+            <HistoryContent />
+        </Suspense>
     );
 }

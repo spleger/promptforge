@@ -238,20 +238,20 @@ async function enhancePrompt(text, settings) {
 
     console.log('[PromptForge] Raw response (first 500 chars):', fullResponse.substring(0, 500));
 
-    // Parse enhanced prompt and improvement plan
-    const result = parseEnhancedPrompt(fullResponse);
+    // Parse enhanced prompt
+    const enhancedPrompt = parseEnhancedPrompt(fullResponse);
 
-    console.log('[PromptForge] Parsed result:', result?.enhanced ? result.enhanced.substring(0, 100) + '...' : 'NULL');
+    console.log('[PromptForge] Parsed result:', enhancedPrompt ? enhancedPrompt.substring(0, 100) + '...' : 'NULL');
 
-    if (!result?.enhanced) {
+    if (!enhancedPrompt) {
       console.error('[PromptForge] Parse failed. Full response:', fullResponse);
       throw new Error('PARSE_ERROR: Could not parse enhanced prompt from response');
     }
 
     // Save to history
-    saveToHistory(text, result.enhanced, model, level);
+    saveToHistory(text, enhancedPrompt, model, level);
 
-    return result;
+    return enhancedPrompt;
   } catch (error) {
     // Network/fetch errors
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
@@ -372,13 +372,10 @@ function parseEnhancedPrompt(response) {
       return null;
     }
 
-    // Step 4: Extract enhanced_prompt and improvement_plan
+    // Step 4: Extract enhanced_prompt
     if (data && data.enhanced_prompt) {
       console.log('[PromptForge] Successfully extracted enhanced_prompt');
-      return {
-        enhanced: data.enhanced_prompt,
-        improvementPlan: data.improvement_plan || null
-      };
+      return data.enhanced_prompt;
     }
 
     console.error('[PromptForge] No enhanced_prompt field in parsed data');
@@ -421,23 +418,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'enhance') {
     // Widget enhancement request
     enhancePrompt(request.text, request.settings)
-      .then(result => {
-        sendResponse({
-          success: true,
-          enhanced: result.enhanced,
-          improvementPlan: result.improvementPlan
-        });
+      .then(enhanced => {
+        sendResponse({ success: true, enhanced });
       })
       .catch(error => {
         sendResponse({ success: false, error: error.message });
       });
     return true; // Keep channel open for async response
-  }
-
-  if (request.action === 'openHistory') {
-    // Open history page
-    chrome.tabs.create({ url: request.url || 'https://promptforge.one/history' });
-    return true;
   }
 
   if (request.action === 'getSettings') {

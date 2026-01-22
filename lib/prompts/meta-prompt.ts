@@ -46,8 +46,28 @@ Apply these techniques as appropriate:
     },
     "enhanced_prompt": "string (the actual prompt to use)",
     "explanation": "string (brief explanation of key improvements)",
-    "suggestions": ["string (optional further improvements)"]
+    "suggestions": ["string (optional further improvements)"],
+    "improvement_plan": {
+      "criticality": "critical|moderate|minor",
+      "summary": "string (one-sentence summary of the most important improvement needed)",
+      "items": [
+        {
+          "title": "string (short title)",
+          "description": "string (detailed explanation of what to improve and WHY)",
+          "example_change": "string (concrete before/after snippet showing the improvement, or 'N/A - requires user-specific info' if you lack context)"
+        }
+      ]
+    }
   }
+
+### improvement_plan Guidelines
+- "criticality" reflects how urgently the prompt needs refinement:
+  - "critical": The prompt is too vague, ambiguous, or missing essential context to produce a good result.
+  - "moderate": The prompt will work but could be significantly improved with more structure or clarity.
+  - "minor": The prompt is already quite good; improvements are polish/optimization.
+- "items" MUST contain exactly 3 improvements, ordered by importance.
+- Each item should be actionable: tell the user exactly what to change or add.
+- If the prompt is already excellent, suggest advanced optimizations or edge-case handling.
 
 ## QUALITY STANDARDS
 

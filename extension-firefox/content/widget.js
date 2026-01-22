@@ -314,13 +314,6 @@ function createWidget() {
         <span class="pf-btn-icon">🔥</span>
         <span class="pf-btn-text">Enhance</span>
       </button>
-      <div class="pf-idea-section hidden">
-        <button class="pf-idea-icon" title="View improvement suggestions">💡</button>
-        <div class="pf-idea-panel hidden">
-          <p class="pf-idea-summary"></p>
-          <a class="pf-idea-link" href="#" target="_blank">View full details →</a>
-        </div>
-      </div>
     `;
     } else {
         // Full widget with context tracking for known AI sites
@@ -329,13 +322,6 @@ function createWidget() {
         <span class="pf-btn-icon">🔥</span>
         <span class="pf-btn-text">Enhance</span>
       </button>
-      <div class="pf-idea-section hidden">
-        <button class="pf-idea-icon" title="View improvement suggestions">💡</button>
-        <div class="pf-idea-panel hidden">
-          <p class="pf-idea-summary"></p>
-          <a class="pf-idea-link" href="#" target="_blank">View full details →</a>
-        </div>
-      </div>
       <div class="pf-context-indicator" title="Click to see details">
         <span class="pf-context-dot green"></span>
         <span class="pf-context-text">0K/200K</span>
@@ -388,28 +374,6 @@ function createWidget() {
     if (panel) {
         panel.addEventListener('mousedown', (e) => {
             e.stopPropagation();
-        });
-    }
-
-    // Idea icon click handler
-    const ideaIcon = widget.querySelector('.pf-idea-icon');
-    if (ideaIcon) {
-        ideaIcon.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const ideaPanel = widget.querySelector('.pf-idea-panel');
-            if (ideaPanel) {
-                ideaPanel.classList.toggle('hidden');
-            }
-        });
-    }
-
-    // Idea link click handler
-    const ideaLink = widget.querySelector('.pf-idea-link');
-    if (ideaLink) {
-        ideaLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            chrome.runtime.sendMessage({ action: 'openHistory', url: ideaLink.href });
         });
     }
 
@@ -509,7 +473,7 @@ async function handleEnhanceClick(e) {
     btn.classList.add('loading');
 
     try {
-        const { enhanced, improvementPlan } = await new Promise((resolve, reject) => {
+        const enhanced = await new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
                 action: 'enhance',
                 text: text,
@@ -518,7 +482,7 @@ async function handleEnhanceClick(e) {
                 if (chrome.runtime.lastError) {
                     reject(chrome.runtime.lastError);
                 } else if (response?.success) {
-                    resolve(response);
+                    resolve(response.enhanced);
                 } else {
                     reject(new Error(response?.error || 'Enhancement failed'));
                 }
@@ -536,34 +500,6 @@ async function handleEnhanceClick(e) {
         } else {
             console.log('[PromptForge] Enhancement complete');
             showToast('✨ Enhanced!');
-        }
-
-        // Show improvement feedback if available
-        if (improvementPlan) {
-            const ideaSection = currentWidget.querySelector('.pf-idea-section');
-            const ideaIcon = currentWidget.querySelector('.pf-idea-icon');
-            const ideaSummary = currentWidget.querySelector('.pf-idea-summary');
-            const ideaLink = currentWidget.querySelector('.pf-idea-link');
-
-            if (ideaSection && ideaIcon && ideaSummary) {
-                // Set color based on criticality
-                ideaIcon.classList.remove('minor', 'moderate', 'critical');
-                ideaIcon.classList.add(improvementPlan.criticality || 'moderate');
-
-                // Set summary text
-                ideaSummary.textContent = improvementPlan.summary || 'Click to see improvement suggestions';
-
-                // Set link (generic history link for now, could be specific if ID returned)
-                // Note: ID handling would require updating background.js to return prompt ID
-
-                // Show section
-                ideaSection.classList.remove('hidden');
-
-                // Pulse animation for critical
-                if (improvementPlan.criticality === 'critical') {
-                    ideaIcon.classList.add('pulse');
-                }
-            }
         }
 
         // Update context display

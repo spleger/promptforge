@@ -17,11 +17,6 @@ const copyReviewsBtn = document.getElementById('copyReviewsBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const historyLink = document.getElementById('historyLink');
 const widgetToggle = document.getElementById('widgetToggle');
-const improvementSection = document.getElementById('improvementSection');
-const ideaIcon = document.getElementById('ideaIcon');
-const improvementSummary = document.getElementById('improvementSummary');
-const improvementSummaryText = document.getElementById('improvementSummaryText');
-const viewFullDetailsLink = document.getElementById('viewFullDetailsLink');
 
 // Load saved settings from background (API-first)
 chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
@@ -216,15 +211,6 @@ async function enhancePrompt(prompt) {
     // Store for copy actions
     window.lastEnhancedPrompt = parsedResponse.enhanced;
     window.lastOriginalPrompt = prompt;
-    window.lastImprovementPlan = parsedResponse.improvementPlan;
-    window.lastPromptId = parsedResponse.promptId;
-
-    // Show improvement section if improvement_plan exists
-    if (parsedResponse.improvementPlan) {
-      showImprovementSection(parsedResponse.improvementPlan, parsedResponse.promptId);
-    } else {
-      improvementSection.classList.add('hidden');
-    }
 
     // Save to history
     saveToHistory(prompt, parsedResponse.enhanced);
@@ -302,9 +288,7 @@ function parseEnhancedPrompt(response) {
         console.log('Successfully parsed enhanced_prompt');
         return {
           enhanced: data.enhanced_prompt,
-          original: data.analysis?.detected_intent || null,
-          improvementPlan: data.improvement_plan || null,
-          promptId: null // Will be set from stream data
+          original: data.analysis?.detected_intent || null
         };
       }
     } catch (e) {
@@ -323,9 +307,7 @@ function parseEnhancedPrompt(response) {
           console.log('Found enhanced_prompt in extracted JSON');
           return {
             enhanced: data.enhanced_prompt,
-            original: data.analysis?.detected_intent || null,
-            improvementPlan: data.improvement_plan || null,
-            promptId: null
+            original: data.analysis?.detected_intent || null
           };
         }
       }
@@ -336,63 +318,15 @@ function parseEnhancedPrompt(response) {
     console.error('Could not parse response at all');
     return {
       enhanced: null,
-      original: null,
-      improvementPlan: null,
-      promptId: null
+      original: null
     };
   } catch (error) {
     console.error('Parse error:', error);
     return {
       enhanced: null,
-      original: null,
-      improvementPlan: null,
-      promptId: null
+      original: null
     };
   }
-}
-
-// Show improvement section with Idea Icon
-function showImprovementSection(improvementPlan, promptId) {
-  if (!improvementPlan) {
-    improvementSection.classList.add('hidden');
-    return;
-  }
-
-  // Remove previous criticality classes
-  ideaIcon.classList.remove('minor', 'moderate', 'critical');
-
-  // Add the correct criticality class
-  const criticality = improvementPlan.criticality || 'moderate';
-  ideaIcon.classList.add(criticality);
-
-  // Set the summary text
-  improvementSummaryText.textContent = improvementPlan.summary || 'Click to see improvement suggestions';
-
-  // Set the link to history
-  if (promptId) {
-    viewFullDetailsLink.href = `https://promptforge.one/history?highlight=${promptId}`;
-  } else {
-    viewFullDetailsLink.href = 'https://promptforge.one/history';
-  }
-
-  // Show the section
-  improvementSection.classList.remove('hidden');
-  improvementSummary.classList.add('hidden'); // Start collapsed
-}
-
-// Toggle improvement summary visibility
-if (ideaIcon) {
-  ideaIcon.addEventListener('click', () => {
-    improvementSummary.classList.toggle('hidden');
-  });
-}
-
-// View full details link handler
-if (viewFullDetailsLink) {
-  viewFullDetailsLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    chrome.tabs.create({ url: viewFullDetailsLink.href });
-  });
 }
 
 // Show error message
